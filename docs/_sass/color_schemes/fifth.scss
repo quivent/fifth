@@ -1,0 +1,66 @@
+// Fifth Dark Theme
+// Matches showcase design system
+
+// Core palette
+$grey-dk-000: #0a0a0a;
+$grey-dk-100: #0f0f0f;
+$grey-dk-200: #171717;
+$grey-dk-250: #1a1a1a;
+$grey-dk-300: #262626;
+
+$grey-lt-000: #f5f5f5;
+$grey-lt-100: #e5e5e5;
+$grey-lt-200: #d4d4d4;
+$grey-lt-300: #a3a3a3;
+
+$purple-000: #6366f1;
+$purple-100: #818cf8;
+$purple-200: #a5b4fc;
+$purple-300: #c7d2fe;
+
+$blue-000: #6366f1;
+$blue-100: #818cf8;
+$blue-200: #a5b4fc;
+$blue-300: #c7d2fe;
+
+$green-000: #22c55e;
+$green-100: #4ade80;
+$green-200: #86efac;
+$green-300: #bbf7d0;
+
+$yellow-000: #eab308;
+$yellow-100: #facc15;
+$yellow-200: #fde047;
+$yellow-300: #fef08a;
+
+$red-000: #ef4444;
+$red-100: #f87171;
+$red-200: #fca5a5;
+$red-300: #fecaca;
+
+// Semantic colors
+$body-background-color: $grey-dk-000;
+$sidebar-color: $grey-dk-100;
+$search-background-color: $grey-dk-200;
+$border-color: $grey-dk-300;
+
+$body-text-color: $grey-lt-100;
+$body-heading-color: $grey-lt-000;
+$nav-child-link-color: $grey-lt-300;
+$search-result-preview-color: $grey-lt-300;
+
+$link-color: $purple-000;
+$btn-primary-color: $purple-000;
+$base-button-color: $grey-dk-200;
+
+$code-background-color: $grey-dk-200;
+$feedback-color: $grey-dk-200;
+
+$table-background-color: $grey-dk-100;
+$search-result-highlight-color: $yellow-100;
+
+// Typography overrides
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+$body-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+$mono-font-family: 'JetBrains Mono', monospace;

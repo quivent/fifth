@@ -4,8 +4,8 @@ remote_theme: just-the-docs/just-the-docs@v0.10.0
 url: https://quivent.github.io
 baseurl: /fifth
 
-# Colors - dark scheme
-color_scheme: dark
+# Colors - Fifth dark scheme
+color_scheme: fifth
 
 # Heading anchor links
 heading_anchors: true
