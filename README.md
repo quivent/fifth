@@ -586,7 +586,8 @@ Same source files work on all backends.
 ├── data/                    # Demo databases (ready to use!)
 │   ├── projects.db          # Project topology examples
 │   └── agents.db            # Functional agent examples
-├── examples/                # Example applications
+├── examples/                # Example applications (23 showcases)
+├── brand/                   # Brand assets (logo, guide)
 └── docs/                    # Documentation
 
 ~/.fifth/                    # Package system (FIFTH_HOME)
