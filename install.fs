@@ -71,6 +71,10 @@ str-reset fifth-home str+ s" /packages" str+ str$ mkdir
 str-reset fifth-home str+ s" /lib" str+ str$
 s" lib" 2swap cp-r
 
+\ Install binary to /usr/local/bin
+." Installing fifth to /usr/local/bin..." cr
+s" cp engine/fifth /usr/local/bin/fifth 2>/dev/null || sudo cp engine/fifth /usr/local/bin/fifth" system
+
 \ Verify
 cr
 ." Verifying installation..." cr
@@ -79,10 +83,10 @@ cr
 cr
 ." ✓ Installation complete!" cr
 cr
-." Try:" cr
-."   ./fifth                          # Interactive REPL" cr
-."   ./fifth -e \"2 3 + . cr\"          # One-liner" cr
-."   ./fifth examples/agent-dashboard.fs  # Demo" cr
+." fifth is now in your PATH. Try:" cr
+."   fifth                          # Interactive REPL" cr
+."   fifth -e \"2 3 + . cr\"          # One-liner" cr
+."   fifth examples/agent-dashboard.fs  # Demo" cr
 cr
 
 bye

@@ -21,21 +21,25 @@ Write tools that parse data, generate HTML, query databases — and optionally c
 
 ## Installation
 
-### Quick Install (30 seconds)
+### Homebrew (macOS)
 
 ```bash
-# Clone and build
+brew tap quivent/fifth
+brew install fifth
+```
+
+### From Source (30 seconds)
+
+```bash
 git clone https://github.com/quivent/fifth.git
 cd fifth && cd engine && make && cd ..
-
-# Install (using Fifth itself!)
 ./fifth install.fs
 ```
 
-That's it. Fifth installs itself.
+Fifth installs itself to `/usr/local/bin`. Then just `fifth` from anywhere.
 
 <details>
-<summary>Alternative: Pure bash install</summary>
+<summary>Alternative: Manual install</summary>
 
 ```bash
 git clone https://github.com/quivent/fifth.git
@@ -43,19 +47,17 @@ cd fifth
 cd engine && make && cd ..
 mkdir -p ~/.fifth/lib ~/.fifth/packages
 cp -r lib/* ~/.fifth/lib/
-./fifth -e "2 3 + . cr"   # Should print: 5
+sudo cp engine/fifth /usr/local/bin/
+fifth -e "2 3 + . cr"   # Should print: 5
 ```
 </details>
 
 ### What You Get
 
 ```
-~/fifth/                     Your Fifth installation
-├── fifth                    CLI wrapper script
-├── engine/fifth             57 KB interpreter binary
-└── examples/                Ready-to-run examples
+/usr/local/bin/fifth         57 KB - works everywhere
 
-~/.fifth/                    Your package directory (FIFTH_HOME)
+~/.fifth/                    Your package directory
 ├── lib/                     Core libraries (str, html, sql, ui)
 └── packages/                Your installed packages
 ```
