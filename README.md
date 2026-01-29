@@ -24,20 +24,28 @@ Write tools that parse data, generate HTML, query databases — and optionally c
 ### Quick Install (30 seconds)
 
 ```bash
-# Clone the repository
-git clone https://github.com/youruser/fifth.git
+# Clone and build
+git clone https://github.com/quivent/fifth.git
+cd fifth && cd engine && make && cd ..
+
+# Install (using Fifth itself!)
+./fifth install.fs
+```
+
+That's it. The installer is written in Forth because we practice what we preach.
+
+<details>
+<summary>Alternative: Pure bash install</summary>
+
+```bash
+git clone https://github.com/quivent/fifth.git
 cd fifth
-
-# Build the interpreter (zero dependencies, <1 second)
 cd engine && make && cd ..
-
-# Set up the package system
 mkdir -p ~/.fifth/lib ~/.fifth/packages
 cp -r lib/* ~/.fifth/lib/
-
-# Verify installation
 ./fifth -e "2 3 + . cr"   # Should print: 5
 ```
+</details>
 
 ### What You Get
 
