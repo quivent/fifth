@@ -1,0 +1,5 @@
+# Tell GitHub linguist that .fs files are Forth
+*.fs linguist-language=Forth
+
+# The compiler is secondary - Forth is the primary language
+compiler/** linguist-vendored
