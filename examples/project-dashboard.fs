@@ -1,7 +1,7 @@
 \ fifth/examples/project-dashboard.fs - Single Database Dashboard
 \ Clean template showing projects.db with tabbed interface
 \
-\ Usage: gforth ~/fifth/examples/project-dashboard.fs
+\ Usage: ./fifth examples/project-dashboard.fs
 
 require ~/fifth/lib/core.fs
 require ~/fifth/lib/ui.fs

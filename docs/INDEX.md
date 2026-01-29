@@ -12,7 +12,7 @@
 | Document | Description |
 |----------|-------------|
 | [language-spec.md](language-spec.md) | Complete Fifth language specification |
-| [forth-reference.md](forth-reference.md) | Forth/Gforth reference and Fifth dependencies |
+| [forth-reference.md](forth-reference.md) | Forth language reference |
 | [library-reference.md](library-reference.md) | Proposed new libraries |
 | [contributing.md](contributing.md) | Development guide, debugging, testing |
 | [roadmap.md](roadmap.md) | Vision, priorities, planned improvements |

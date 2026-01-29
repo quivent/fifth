@@ -163,7 +163,7 @@ s" port" 5432 ini-set-n             ( key$ n -- )    \ port = 5432
 ini-flush
 ```
 
-**Implementation approach**: Reading parses line-by-line with Gforth file I/O.
+**Implementation approach**: Reading parses line-by-line with Fifth file I/O.
 Track current section in a variable. Store key-value pairs in a fixed-size
 array (e.g., 64 entries max). Writing is pure string output.
 
@@ -323,10 +323,10 @@ test-summary    ( -- )                \ Print results and set exit code
 \ Exit code 0 = all passed, 1 = failures
 
 \ --- File-level test runner ---
-\ gforth ~/fifth/tests/test-str.fs
-\ gforth ~/fifth/tests/test-json.fs
+\ ./fifthtests/test-str.fs
+\ ./fifthtests/test-json.fs
 \ Or run all:
-\ for f in ~/fifth/tests/test-*.fs; do gforth "$f"; done
+\ for f in ~/fifth/tests/test-*.fs; do ./fifth "$f"; done
 ```
 
 **Implementation approach**: Pure Forth. Variables track pass/fail counts.
@@ -547,7 +547,7 @@ s" /home/user/docs/file.txt" dirname type   ( path$ -- addr u ) \ /home/user/doc
 s" /home/user/docs/file.txt" extname type   ( path$ -- addr u ) \ .txt
 ```
 
-**Implementation approach**: `slurp-file` already exists in Gforth. File info
+**Implementation approach**: `slurp-file` already exists in the interpreter. File info
 shells out to `stat` (GNU or BSD variants detected at load time). Directory
 listing uses `ls -1`. Path manipulation is pure Forth string scanning (search
 backward for `/` and `.`).
@@ -590,7 +590,7 @@ s" curl" has-command? .             ( cmd$ -- flag ) \ true if in PATH
 s" jq" has-command? .              \ true or false
 ```
 
-**Implementation approach**: Gforth provides `getenv` for environment variables.
+**Implementation approach**: Fifth provides `getenv` for environment variables.
 Platform detection shells out to `uname -s`. `has-command?` shells out to
 `command -v name > /dev/null 2>&1`.
 
@@ -744,8 +744,8 @@ s" Query complete" log-tock     ( msg$ -- ) \ Logs with elapsed ms
 
 **Implementation approach**: Timestamps via `date +%Y-%m-%dT%H:%M:%S` shell-out
 (cached per second to avoid excessive forking). Level filtering via variable
-comparison. Output to stderr by default using Gforth's `stderr` file descriptor.
-Timer uses Gforth's `utime` (microsecond clock).
+comparison. Output to stderr by default using the `stderr` file descriptor.
+Timer uses `utime` (microsecond clock).
 
 **Estimated size**: ~150 lines
 
@@ -839,9 +839,9 @@ s" my-word" ' my-word profile
 \ approach-b is 1.11x faster
 ```
 
-**Implementation approach**: Uses Gforth's `utime` for microsecond timing.
+**Implementation approach**: Uses `utime` for microsecond timing.
 `profile` executes the word in a loop and divides total time by iterations.
-Memory reporting uses `here` and `unused` (Gforth built-ins). Pure Forth,
+Memory reporting uses `here` and `unused` (built-in). Pure Forth,
 no shell-out needed.
 
 **Estimated size**: ~120 lines

@@ -1,6 +1,6 @@
 # Forth Reference
 
-A consolidated reference for Forth, Gforth, and Fifth's dependencies.
+A consolidated reference for Forth concepts and Fifth's implementation.
 
 ---
 
@@ -141,7 +141,7 @@ All return `TRUE` (-1) or `FALSE` (0).
 | Word | Effect | Description |
 |------|--------|-------------|
 | `S"` | `( -- addr u )` | String literal (transient) |
-| `S\"` | `( -- addr u )` | With escapes (Gforth) |
+| `S\"` | `( -- addr u )` | With escapes |
 | `."` | | Print literal |
 | `TYPE` | `( addr u -- )` | Print string |
 | `CR` | | Newline |
@@ -162,9 +162,9 @@ All return `TRUE` (-1) or `FALSE` (0).
 
 ---
 
-## 4. Gforth Extensions
+## 4. Fifth Interpreter Words
 
-Fifth uses these Gforth-specific words:
+The Fifth C interpreter provides these commonly-used words beyond ANS Core:
 
 | Word | Purpose | Fifth Usage |
 |------|---------|-------------|
@@ -173,67 +173,51 @@ Fifth uses these Gforth-specific words:
 | `STDOUT` | `( -- fid )` Standard output fd | Debug output |
 | `SLURP-FILE` | `( addr u -- addr2 u2 )` Read entire file | Template capture |
 | `REQUIRE` | Load file once | All library imports |
-| `NOOP` | Do nothing | Default slot action |
-| `S>NUMBER?` | `( addr u -- d flag )` Parse number | SQL count parsing |
+| `GETENV` | `( addr u -- addr' u' )` Get env var | Package paths |
+| `PARSE-NAME` | `( -- addr u )` Parse next word | Package system |
 | `SYSTEM` | `( addr u -- )` Shell command | SQLite, open |
 
-**Gforth word count in Fifth: 8 words** (of ~84 total). Everything else is ANS standard.
+These are implemented in the Fifth interpreter (`engine/`).
 
 ---
 
-## 5. Fifth Dependency Audit
+## 5. Fifth Word Categories
 
 ### By Category
 
-| Category | ANS Core | ANS Ext | Gforth | Total |
-|----------|----------|---------|--------|-------|
+| Category | ANS Core | ANS Ext | Fifth-specific | Total |
+|----------|----------|---------|----------------|-------|
 | Stack | 10 | 4 | 0 | 14 |
 | Arithmetic | 7 | 3 | 0 | 10 |
 | Memory | 10 | 0 | 0 | 10 |
 | Control | 10 | 4 | 0 | 14 |
-| Strings | 5 | 0 | 1 | 6 |
+| Strings | 5 | 0 | 2 | 7 |
 | File I/O | 8 | 0 | 3 | 11 |
-| Defining | 6 | 0 | 1 | 7 |
-| System | 0 | 0 | 2 | 2 |
+| Defining | 6 | 0 | 0 | 6 |
+| System | 0 | 0 | 3 | 3 |
 | **Total** | **~56** | **~11** | **8** | **~75** |
 
-### Portability
+### Interpreter Implementation
 
-Fifth is **~89% ANS-portable**. The 8 Gforth words appear in ~15 lines of code. The `SYSTEM` word (for shell-out to sqlite3) is the only hard dependency.
-
-### Workarounds for Gforth Words
-
-| Word | ANS Replacement |
-|------|-----------------|
-| `NOOP` | `: NOOP ;` |
-| `EMIT-FILE` | `WRITE-FILE` with 1-byte buffer |
-| `S>NUMBER?` | `>NUMBER` with flag logic |
-| `STDOUT` | Platform constant (1 on Unix) |
-| `S\"` | Build chars manually |
-| `SLURP-FILE` | Open, size, allocate, read |
-| `REQUIRE` | Track loaded files in Forth |
-| `SYSTEM` | No standard replacement |
+Fifth's C interpreter implements ANS Core words plus commonly-used extensions. The `SYSTEM` word (for shell-out to sqlite3) is essential for database access.
 
 ---
 
 ## 6. Practical Reference
 
-### Installation
+### Building Fifth
 
 ```bash
-# macOS
-brew install gforth
-
-# Debian/Ubuntu
-apt install gforth
+cd ~/fifth/engine
+make
 ```
 
 ### Running
 
 ```bash
-gforth file.fs              # Execute and enter REPL
-gforth -e "2 3 + . bye"     # One-liner
-gforth                       # Interactive
+./fifth program.fs          # Execute file
+./fifth -e "2 3 + . bye"    # One-liner
+./fifth                      # Interactive REPL
 ```
 
 ### Debugging
@@ -310,5 +294,5 @@ Two buffers prevent conflicts:
 
 ---
 
-*Consolidated from FORTH.md, GFORTH.md, and FORTH_GFORTH.md*
-*~300 lines vs ~2,600 original*
+*Fifth Forth Language Reference*
+*~300 lines*

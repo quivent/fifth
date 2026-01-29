@@ -21,7 +21,7 @@ This is imprecise. Both are interpreted. The comparison:
 | Implementation | Speed vs C |
 |----------------|------------|
 | CPython 3.11+ | 2-5% |
-| Gforth (threaded) | 5-15% |
+| Fifth interpreter | 5-15% |
 | Fifth + Cranelift JIT | 70-85% |
 | Fifth + LLVM AOT | 85-110% |
 
@@ -139,7 +139,7 @@ No interaction effects. No event ordering. No lifecycle hooks. No virtual DOM re
 Test any word instantly:
 
 ```bash
-gforth -e 's" hello|world" 1 parse-pipe type cr bye'
+./fifth -e 's" hello|world" 1 parse-pipe type cr bye'
 # Output: world
 ```
 

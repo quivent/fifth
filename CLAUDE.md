@@ -2,7 +2,7 @@
 
 ## What Fifth Is
 
-Fifth is a collection of practical Forth libraries for building real applications with Gforth. No external dependencies beyond Gforth and standard Unix tools (sqlite3).
+Fifth is a practical Forth ecosystem with its own interpreter, compiler, and standard libraries. No external dependencies beyond standard Unix tools (sqlite3 for database features).
 
 **Name origin**: Forth -> Fifth (next generation). Bringing Forth into modern development.
 
@@ -10,18 +10,26 @@ Fifth is a collection of practical Forth libraries for building real application
 
 ```
 ~/fifth/
-├── lib/
-│   ├── str.fs          String buffers, parsing, field extraction
-│   ├── html.fs         HTML5 tags, escaping, document structure
-│   ├── sql.fs          SQLite shell interface, result iteration
-│   ├── template.fs     Slots, conditional rendering, layouts
-│   ├── ui.fs           Cards, badges, tabs, grids, dashboards
-│   └── core.fs         Loads str + html + sql + utilities
-├── examples/
-│   ├── db-viewer.fs    Dual-database HTML viewer
-│   └── project-dashboard.fs  Tabbed dashboard with panels
-├── README.md
-└── CLAUDE.md
+├── engine/               C interpreter (the runtime)
+│   ├── fifth.c           Main entry point
+│   ├── vm.c              Virtual machine core
+│   ├── prims.c           Primitive words
+│   └── io.c              I/O and file operations
+├── compiler/             Rust compiler (native code generation)
+├── examples/             Example applications
+└── fifth                 CLI wrapper script
+
+~/.fifth/                 Package system (FIFTH_HOME)
+├── lib/                  Core libraries
+│   ├── str.fs            String buffers, parsing
+│   ├── html.fs           HTML generation
+│   ├── sql.fs            SQLite interface
+│   ├── template.fs       Template system
+│   ├── ui.fs             UI components
+│   ├── pkg.fs            Package system
+│   └── core.fs           Loads all libraries
+└── packages/             Installed packages
+    └── claude-tools/     Example package
 ```
 
 ## Core Principles
@@ -38,7 +46,6 @@ Fifth is a collection of practical Forth libraries for building real application
 
 - **Word spacing**: `</div>nl` is ONE undefined word. `</div> nl` is TWO words. Forth tokenizes on whitespace only.
 - **`s"` has no escapes**: Use `s\"` for embedded quotes (`s\" ...\"...\"..."`). Standard `s"` treats backslash as literal.
-- **No `popen` on macOS**: Gforth's `unix/pipe.fs` doesn't exist. Shell out to temp files instead.
 - **`s+` crashes**: Dynamic string concatenation causes memory errors. Always use buffer pattern.
 - **Stack errors = cryptic crashes**: "Invalid memory address" usually means a stack imbalance. Add `.s` calls to debug.
 - **SQL single quotes**: Shell quoting uses single quotes around the SQL. SQL string literals inside conflict. Avoid `WHERE col='value'`; use numeric comparisons, ORDER BY, or parameter workarounds.
@@ -81,22 +88,43 @@ html.fs     --> str.fs
 sql.fs      --> str.fs
 template.fs --> html.fs --> str.fs
 ui.fs       --> html.fs, template.fs
-core.fs     --> str.fs, html.fs, sql.fs
+pkg.fs      --> str.fs
+core.fs     --> str.fs, html.fs, sql.fs, pkg.fs
 ```
 
 ## Commands
 
 ```bash
 # Run examples
-gforth ~/fifth/examples/db-viewer.fs
-gforth ~/fifth/examples/project-dashboard.fs
+./fifth examples/db-viewer.fs
+./fifth examples/project-dashboard.fs
 
-# Test a library interactively
-gforth ~/fifth/lib/core.fs
-# Then type Forth words at the prompt
+# One-liner
+./fifth -e "2 3 + . cr"
 
-# Run with stack trace on error
-gforth -e "include ~/fifth/examples/project-dashboard.fs"
+# Interactive REPL
+./fifth
+
+# Load core libraries interactively
+./fifth -e "require ~/.fifth/lib/pkg.fs use lib:core.fs"
+
+# Package commands
+./fifth pkg list
+./fifth pkg path
+```
+
+## Package System
+
+```forth
+\ Bootstrap the package system
+require ~/.fifth/lib/pkg.fs
+
+\ Load libraries from ~/.fifth/lib/
+use lib:core.fs
+use lib:str.fs
+
+\ Load packages from ~/.fifth/packages/
+use pkg:claude-tools
 ```
 
 ## HTML Output Pattern
@@ -140,8 +168,8 @@ Results are pipe-delimited. `sql-field` extracts by 0-based index.
 
 ## Conventions
 
-- Library files go in `lib/`
-- Example applications go in `examples/`
+- Core libraries go in `~/.fifth/lib/`
+- Packages go in `~/.fifth/packages/NAME/`
 - Every `.fs` file starts with a comment block: `\ fifth/path/file.fs - Description`
 - Use `require` not `include` (prevents double-loading)
 - CSS class names use kebab-case: `stat-card`, `grid-auto`, `bg-primary`
@@ -153,5 +181,5 @@ Results are pipe-delimited. `sql-field` extracts by 0-based index.
 - Don't try to `include` the same file twice (use `require`)
 - Don't put single-quoted SQL literals in shell commands
 - Don't assume `s"` strings persist after the word returns (they're transient)
-- Don't redefine standard Gforth words (`emit-file`, `type`, etc.)
+- Don't redefine standard Forth words (`emit-file`, `type`, etc.)
 - Don't create words with embedded whitespace (impossible in Forth)

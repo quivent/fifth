@@ -20,7 +20,7 @@ Fifth follows three non-negotiable principles:
 
 Fifth talks to SQLite through the `sqlite3` CLI, not through C bindings. This is deliberate:
 
-- **Zero build complexity.** No `gcc`, no `ld`, no `pkg-config`, no shared libraries. Install Gforth and go.
+- **Zero build complexity.** No `gcc` flags, no `pkg-config`, no shared libraries. Build the interpreter and go.
 - **Universal availability.** `sqlite3` ships with macOS. It is one `apt install` away on Linux.
 - **Inspectable.** Every query produces a temp file you can `cat`. Try debugging a C binding that returns a null pointer.
 - **Good enough.** For dashboards and viewers, the overhead of spawning a process is irrelevant. We are generating HTML, not trading equities.
@@ -35,7 +35,7 @@ When to reconsider: if you need transactions, prepared statements, or sub-millis
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Gforth | 0.7+ | `brew install gforth` (macOS) / `apt install gforth` (Linux) |
+| C compiler | gcc/clang | System default |
 | sqlite3 | 3.x | `brew install sqlite` (macOS) / `apt install sqlite3` (Linux) |
 | A browser | Any | For viewing generated HTML |
 
@@ -69,20 +69,20 @@ sql.fs      core.fs (loads str + html + sql)
 ### Verify Your Setup
 
 ```bash
-# Test 1: Gforth runs
-gforth -e "42 . cr bye"
+# Test 1: Interpreter runs
+./fifth -e "42 . cr bye"
 # Expected: 42
 
 # Test 2: Libraries load without error
-gforth -e "require ~/fifth/lib/core.fs .fifth bye"
+./fifth -e "require ~/fifth/lib/core.fs .fifth bye"
 # Expected: Fifth version banner
 
 # Test 3: String buffer works
-gforth -e 'require ~/fifth/lib/str.fs str-reset s" hello" str+ str$ type cr bye'
+./fifth -e 'require ~/fifth/lib/str.fs str-reset s" hello" str+ str$ type cr bye'
 # Expected: hello
 
 # Test 4: Run an example (requires ~/.claude/db/projects.db)
-gforth ~/fifth/examples/project-dashboard.fs
+./fifthexamples/project-dashboard.fs
 # Expected: opens HTML dashboard in browser
 ```
 
@@ -170,7 +170,7 @@ s" <script>" html-escape str2+   \ html-escape ALSO uses str2-buf. Corruption.
 Forth does not have exceptions in the traditional sense. Fifth uses these patterns:
 
 ```forth
-\ Pattern 1: throw on file errors (standard Gforth)
+\ Pattern 1: throw on file errors (standard Forth)
 s" /tmp/output.html" w/o create-file throw html>file
 
 \ Pattern 2: silent truncation on buffer overflow
@@ -216,13 +216,13 @@ Do not invent new error handling mechanisms. Use the patterns above.
 3. Write the word with a stack comment.
 4. Test interactively:
    ```bash
-   gforth ~/fifth/lib/core.fs
+   ./fifthlib/core.fs
    ```
    Then type your word definition and test at the prompt.
 5. Add it to the file in the correct section.
 6. Verify the library still loads:
    ```bash
-   gforth -e "require ~/fifth/lib/core.fs bye"
+   ./fifth -e "require ~/fifth/lib/core.fs bye"
    ```
 
 ### How to Create a New Library
@@ -254,7 +254,7 @@ Fifth does not have an automated test suite. Testing is manual:
 
 ```bash
 # Load and use interactively
-gforth ~/fifth/lib/core.fs
+./fifthlib/core.fs
 \ Then type words at the prompt and verify output
 ```
 
@@ -262,10 +262,10 @@ This is the honest state of things. The project is ~1,500 lines across 6 library
 
 ### How to Test a Word
 
-Interactive testing at the Gforth prompt:
+Interactive testing at the Fifth prompt:
 
 ```bash
-gforth ~/fifth/lib/str.fs
+./fifthlib/str.fs
 ```
 
 ```forth
@@ -336,7 +336,7 @@ bye
 
 Run with:
 ```bash
-gforth ~/fifth/tests/test-str.fs
+./fifthtests/test-str.fs
 ```
 
 The `??` word in core.fs also works as a quick assertion:
@@ -441,7 +441,7 @@ A good contribution:
 3. **Has a stack comment.** No stack comment, no review.
 4. **Uses existing buffers.** Does not add a third string buffer.
 5. **Follows the naming conventions.** Tag words look like tags. Predicates end with `?`. Display words start with `.`.
-6. **Was tested manually.** Show the Gforth session where you tested it.
+6. **Was tested manually.** Show the session where you tested it.
 
 ### What Will Get Rejected
 
@@ -487,13 +487,13 @@ Include the stack comment in the commit body if you added or changed a word.
 **Wall clock time** (the only metric that matters for most Fifth programs):
 
 ```bash
-time gforth ~/fifth/examples/project-dashboard.fs
+time ./fifthexamples/project-dashboard.fs
 ```
 
 Typical output on modern hardware:
 ```
 real    0m0.05s    # Total elapsed
-user    0m0.03s    # CPU time in Gforth
+user    0m0.03s    # CPU time in interpreter
 sys     0m0.02s    # CPU time in kernel (file I/O, sqlite3 spawning)
 ```
 
@@ -504,7 +504,7 @@ sys     0m0.02s    # CPU time in kernel (file I/O, sqlite3 spawning)
 time sqlite3 -separator '|' ~/.claude/db/projects.db 'SELECT * FROM projects'
 ```
 
-If the query itself takes 50ms but your program takes 500ms, the overhead is in Gforth startup, file I/O, or HTML generation -- not SQL.
+If the query itself takes 50ms but your program takes 500ms, the overhead is in interpreter startup, file I/O, or HTML generation -- not SQL.
 
 **Counting shell-outs**:
 
@@ -547,7 +547,7 @@ For the "becomes a problem" cases, Fifth is the wrong tool. Use a language with 
 
 ### Why Static Buffers Over Dynamic Allocation
 
-Gforth's `allocate` and `free` work. The dynamic string concatenation operator `s+` does not -- it causes memory errors in practice on macOS. Rather than debug a memory allocator, we use two fixed 1024-byte buffers.
+The `allocate` and `free` words work. The dynamic string concatenation operator `s+` does not -- it causes memory errors in practice. Rather than debug a memory allocator, we use two fixed 1024-byte buffers.
 
 This forces a discipline: build a string, use it, then build the next. You cannot hoard strings. This is a feature. Stack-based programming means values flow through; they do not accumulate.
 
@@ -563,7 +563,7 @@ HTML generation goes to a file (`html>file`), not stdout. Reasons:
 
 1. **Open in browser.** You cannot pipe stdout to Safari. A file path works everywhere.
 2. **Inspectable.** After generation, the file sits in /tmp for you to examine.
-3. **Composable.** Multiple Gforth programs can write to different files. Try composing stdout-only programs.
+3. **Composable.** Multiple Fifth programs can write to different files. Try composing stdout-only programs.
 4. **Matches the SQL pattern.** SQL results go to temp files too. Consistency.
 
 ### Why Pipe-Delimited SQL Results
@@ -591,10 +591,10 @@ This is not scalable to 10,000 packages. It is perfect for a focused project wit
 ### Running Things
 
 ```bash
-gforth ~/fifth/lib/core.fs               # Interactive REPL with all core libs
-gforth ~/fifth/examples/db-viewer.fs      # Run example program
-gforth -e "require ~/fifth/lib/str.fs"    # Load library, stay in REPL
-gforth -e "include ~/fifth/examples/project-dashboard.fs"  # Run with stack trace
+./fifthlib/core.fs               # Interactive REPL with all core libs
+./fifthexamples/db-viewer.fs      # Run example program
+./fifth -e "require ~/fifth/lib/str.fs"    # Load library, stay in REPL
+./fifth -e "include ~/fifth/examples/project-dashboard.fs"  # Run with stack trace
 ```
 
 ### Files You Must Read Before Modifying

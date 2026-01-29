@@ -1,7 +1,7 @@
 \ fifth/examples/db-viewer.fs - Claude Database Viewer
 \ Demonstrates Fifth libraries: html.fs, sql.fs, str.fs
 \
-\ Usage: gforth ~/fifth/examples/db-viewer.fs
+\ Usage: ./fifth examples/db-viewer.fs
 
 require ~/fifth/lib/core.fs
 

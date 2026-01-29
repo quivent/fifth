@@ -264,6 +264,28 @@ static void p_bye(vm_t *vm) {
     vm->running = false;
 }
 
+/* GETENV ( addr u -- addr' u' ) Get environment variable, returns 0 0 if not found */
+static void p_getenv(vm_t *vm) {
+    cell_t len = pop(vm);
+    cell_t addr = pop(vm);
+    char name[256];
+    forth_to_cstr(vm, addr, len, name, sizeof(name));
+
+    const char *val = getenv(name);
+    if (val) {
+        size_t vlen = strlen(val);
+        /* Copy value to dictionary space */
+        cell_t dest = vm->here;
+        memcpy(vm->mem + dest, val, vlen);
+        vm->here += vlen;
+        push(vm, dest);
+        push(vm, (cell_t)vlen);
+    } else {
+        push(vm, 0);
+        push(vm, 0);
+    }
+}
+
 /* ============================================================
  * File Loading: INCLUDE and REQUIRE
  * ============================================================ */
@@ -417,6 +439,7 @@ void io_init(vm_t *vm) {
     /* System */
     vm_add_prim(vm, "system",  p_system,  false);
     vm_add_prim(vm, "bye",     p_bye,     false);
+    vm_add_prim(vm, "getenv",  p_getenv,  false);
 
     /* File loading */
     vm_add_prim(vm, "include",  p_include,  false);

@@ -635,6 +635,18 @@ static void p_char(vm_t *vm) {
     push(vm, (cell_t)buf[0]);
 }
 
+/* PARSE-NAME ( -- addr u ) Parse next whitespace-delimited word */
+static void p_parse_name(vm_t *vm) {
+    char buf[NAME_MAX_LEN + 1];
+    int len = vm_word(vm, buf);
+    /* Copy to dictionary space */
+    cell_t dest = vm->here;
+    memcpy(vm->mem + dest, buf, len);
+    vm->here += len;
+    push(vm, dest);
+    push(vm, (cell_t)len);
+}
+
 /* ============================================================
  * Numeric Output
  * ============================================================ */
@@ -991,8 +1003,9 @@ void prims_init(vm_t *vm) {
     /* Strings */
     vm_add_prim(vm, "s\"",      p_s_quote,    true);
     vm_add_prim(vm, "s\\\"",    p_s_bs_quote, true);
-    vm_add_prim(vm, "[char]",   p_bracket_char,true);
-    vm_add_prim(vm, "char",     p_char,       false);
+    vm_add_prim(vm, "[char]",     p_bracket_char, true);
+    vm_add_prim(vm, "char",       p_char,         false);
+    vm_add_prim(vm, "parse-name", p_parse_name,   false);
     vm_add_prim(vm, ".\"",      p_dot_quote,  true);
     vm_add_prim(vm, ".(",       p_dot_paren,  true);
     vm_add_prim(vm, "abort\"",  p_abort_quote,true);

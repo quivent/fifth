@@ -2,7 +2,7 @@
 
 **Version 0.1.0**
 
-Fifth is a vocabulary of Forth words for building real applications. It is built on Gforth and requires only Gforth and the `sqlite3` CLI. Fifth is not a framework. It imposes no structure, requires no configuration files, and has no build system. It is six libraries totaling approximately 1,100 lines of code.
+Fifth is a practical Forth ecosystem for building real applications. It includes its own interpreter, compiler, and standard libraries. The only external dependency is the `sqlite3` CLI for database features. Fifth is not a framework. It imposes no structure, requires no configuration files, and has no build system. It is six libraries totaling approximately 1,100 lines of code.
 
 ---
 
@@ -20,8 +20,8 @@ Fifth is a collection of practical Forth libraries that provide:
 ### What Fifth is not
 
 - Not a framework. No application object, no router, no lifecycle, no plugin system.
-- Not a language. Fifth is standard Gforth with additional word definitions.
-- Not a runtime. Gforth is the runtime. Fifth is vocabulary.
+- Not just libraries. Fifth has its own C interpreter and Rust compiler.
+- Self-contained. No external Forth implementation required.
 
 ### Philosophy
 
@@ -33,8 +33,8 @@ Fifth is a collection of practical Forth libraries that provide:
 
 ### Requirements
 
-- [Gforth](https://gforth.org/) 0.7+
 - `sqlite3` CLI (ships with macOS; `apt install sqlite3` on Linux)
+- C compiler (to build the interpreter)
 
 ---
 
@@ -896,7 +896,7 @@ dashboard-end
 
 | Word | Stack Effect | Description |
 |------|-------------|-------------|
-| `.s.` | `( -- )` | Print `Stack: ` followed by the current stack contents (via Gforth's `.s`), then a newline. Non-destructive. |
+| `.s.` | `( -- )` | Print `Stack: ` followed by the current stack contents (via `.s`), then a newline. Non-destructive. |
 | `??` | `( flag -- )` | Assert. If `flag` is false (0), print `ASSERTION FAILED` and abort. Otherwise continue. No context is provided on failure. |
 
 #### Common Constants
@@ -1098,13 +1098,13 @@ slot: @main
 - 6 libraries
 - ~1,100 lines of library code
 - 2 example applications (~500 lines)
-- Requires: Gforth 0.7+, `sqlite3` CLI
+- Requires: `sqlite3` CLI
 
 ---
 
 ## 8. Complete Word Index
 
-Every word Fifth defines, organized alphabetically. Standard Gforth words are not listed.
+Every word Fifth defines, organized alphabetically. Standard Forth words are not listed.
 
 | Word | Library | Stack Effect | Description |
 |------|---------|-------------|-------------|
@@ -1391,4 +1391,4 @@ Every word Fifth defines, organized alphabetically. Standard Gforth words are no
 
 *Fifth: Forth Libraries for the Fifth Age*
 *Version 0.1.0 -- 6 libraries, ~1,100 lines, 206 words*
-*Requires: Gforth 0.7+, sqlite3 CLI*
+*Requires: sqlite3 CLI*

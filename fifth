@@ -13,6 +13,10 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INTERPRETER="$SCRIPT_DIR/engine/fifth"
+
+# Package system paths
+export FIFTH_HOME="${FIFTH_HOME:-$HOME/.fifth}"
+
 # Check for compiler in shared target dir (global cargo config) or local
 if [[ -x "$HOME/.cargo/shared-target/release/fifthc" ]]; then
     COMPILER="$HOME/.cargo/shared-target/release/fifthc"
@@ -45,28 +49,54 @@ case "${1:-}" in
         echo "Use interpreter for now: ./fifth program.fs"
         exit 1
         ;;
+    pkg)
+        # Package management commands
+        shift
+        case "${1:-}" in
+            list)
+                echo "Installed packages:"
+                ls -1 "$FIFTH_HOME/packages/" 2>/dev/null || echo "(none)"
+                ;;
+            path)
+                echo "FIFTH_HOME: $FIFTH_HOME"
+                echo "Library path: $FIFTH_HOME/lib/"
+                echo "Package path: $FIFTH_HOME/packages/"
+                ;;
+            *)
+                echo "Usage: fifth pkg [list|path]"
+                ;;
+        esac
+        exit 0
+        ;;
     --help|-h)
         cat <<EOF
 Fifth - A practical Forth ecosystem
 
-INTERPRETER (fast startup, 5-15% of C):
+INTERPRETER (fast startup):
   fifth program.fs           Execute Forth file
   fifth -e "code"            Execute one-liner
   fifth                      Interactive REPL
 
-COMPILER (native code, 70-85% of C):
+COMPILER (native code):
   fifth compile program.fs   Compile to native binary
   fifth run program.fs       JIT execute
   fifth repl                 Compiled REPL
-  (--emit-c planned but not yet wired to CLI)
+
+PACKAGES:
+  fifth pkg list             List installed packages
+  fifth pkg path             Show package paths
 
 OPTIONS:
   --help, -h                 Show this help
 
+ENVIRONMENT:
+  FIFTH_HOME                 Package root (default: ~/.fifth)
+
 EXAMPLES:
-  fifth examples/project-dashboard.fs
-  fifth compile examples/project-dashboard.fs -o dashboard
-  fifth --emit-c examples/project-dashboard.fs > dashboard.c
+  fifth examples/hello.fs
+  fifth compile examples/hello.fs -o hello
+  fifth -e "require ~/.fifth/lib/pkg.fs use lib:core.fs .fifth"
+  fifth pkg list
 
 For compiler options: fifth compile --help
 EOF
