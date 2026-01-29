@@ -5,7 +5,14 @@
 
 CC      = cc
 CFLAGS  = -O2 -Wall -Wextra -Wpedantic -std=c11 -D_POSIX_C_SOURCE=200809L
+
+# Link CoreFoundation + CoreServices on macOS for native open-path
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+LDFLAGS = -framework CoreFoundation -framework CoreServices
+else
 LDFLAGS =
+endif
 TARGET  = fifth
 SRCS    = main.c vm.c prims.c io.c
 OBJS    = $(SRCS:.c=.o)

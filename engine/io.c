@@ -9,6 +9,11 @@
 #include <libgen.h>
 #include <unistd.h>
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreServices/CoreServices.h>
+#endif
+
 /* ============================================================
  * Console I/O
  * ============================================================ */
@@ -259,6 +264,50 @@ static void p_system(vm_t *vm) {
     system(cmd);
 }
 
+/* OPEN-PATH ( addr u -- ) Open file/URL with native OS handler, no fork */
+static void p_open_path(vm_t *vm) {
+    cell_t len = pop(vm);
+    cell_t addr = pop(vm);
+    char path[PATH_MAX];
+    int n = (len >= (cell_t)sizeof(path)) ? (int)sizeof(path) - 1 : (int)len;
+    memcpy(path, vm->mem + addr, n);
+    path[n] = '\0';
+
+#ifdef __APPLE__
+    /* Direct LaunchServices call — no fork, no exec, no subprocess */
+    CFStringRef str = CFStringCreateWithCString(NULL, path, kCFStringEncodingUTF8);
+    CFURLRef url;
+    if (strstr(path, "://")) {
+        url = CFURLCreateWithString(NULL, str, NULL);
+    } else {
+        /* Expand ~ */
+        char expanded[PATH_MAX];
+        if (path[0] == '~') {
+            const char *home = getenv("HOME");
+            if (home)
+                snprintf(expanded, sizeof(expanded), "%s%s", home, path + 1);
+            else
+                strncpy(expanded, path, sizeof(expanded) - 1);
+        } else {
+            strncpy(expanded, path, sizeof(expanded) - 1);
+        }
+        expanded[sizeof(expanded) - 1] = '\0';
+        url = CFURLCreateFromFileSystemRepresentation(NULL,
+            (const UInt8 *)expanded, strlen(expanded), false);
+    }
+    if (url) {
+        LSOpenCFURLRef(url, NULL);
+        CFRelease(url);
+    }
+    CFRelease(str);
+#else
+    /* Fallback: shell out */
+    char cmd[PATH_MAX + 32];
+    snprintf(cmd, sizeof(cmd), "xdg-open '%s' &", path);
+    system(cmd);
+#endif
+}
+
 /* BYE ( -- ) Exit the interpreter */
 static void p_bye(vm_t *vm) {
     vm->running = false;
@@ -437,9 +486,10 @@ void io_init(vm_t *vm) {
     vm_add_prim(vm, "slurp-file",  p_slurp_file,   false);
 
     /* System */
-    vm_add_prim(vm, "system",  p_system,  false);
-    vm_add_prim(vm, "bye",     p_bye,     false);
-    vm_add_prim(vm, "getenv",  p_getenv,  false);
+    vm_add_prim(vm, "system",    p_system,    false);
+    vm_add_prim(vm, "open-path", p_open_path, false);
+    vm_add_prim(vm, "bye",       p_bye,       false);
+    vm_add_prim(vm, "getenv",    p_getenv,    false);
 
     /* File loading */
     vm_add_prim(vm, "include",  p_include,  false);

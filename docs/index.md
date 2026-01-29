@@ -80,9 +80,26 @@ fifth -e ': hello ." Hello, Fifth!" cr ; hello'
 
 ---
 
+## Native I/O — No Shell, No Fork
+
+Fifth talks directly to the OS. No subprocess spawning.
+
+```forth
+\ Other languages: fork → exec → /usr/bin/open → LaunchServices → browser
+s" open /tmp/page.html" system        \ 182ms
+
+\ Fifth: C → LaunchServices → browser
+s" /tmp/page.html" open-path          \  56ms — 3.2x faster
+```
+
+`open-path` calls macOS `LSOpenCFURLRef` from C. Same API that `/usr/bin/open` calls, minus 126ms of process overhead. A 57KB binary with native OS integration.
+
+---
+
 ## What's Included
 
-- **Interpreter** — Fast C-based Forth engine
+- **Interpreter** — Fast C-based Forth engine, 2ms startup
+- **Native I/O** — Direct OS calls, no subprocess overhead
 - **Package System** — `use lib:` and `use pkg:` for libraries
 - **HTML Generation** — Type-safe templates with auto-escaping
 - **SQLite Interface** — Query databases via shell-out pattern

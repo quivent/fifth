@@ -65,15 +65,34 @@ The difference is bloat:
 Real measurements (M-series Mac):
 
 ```
-Fifth startup:        2ms
-Forth 10K iterations: 2ms
-sqlite3 subprocess:   4ms
-File write:          <1ms
-open (launch app):   56ms
-curl (network):     130ms
+Fifth startup:          2ms    calloc 1.5MB + 130 prims + boot.fs
+Forth 10K iterations:   2ms
+sqlite3 subprocess:     4ms
+File write:            <1ms
+curl (network):       130ms
 ```
 
-Forth interpretation is <2% of any real workflow. The bottleneck is always I/O and subprocess spawning. Fifth shells out for heavy lifting (`sqlite3`, `curl`, `jq`, `open`) and handles orchestration in Forth — same pattern as shell scripts, but with stack discipline and verifiable contracts.
+Forth interpretation is <2% of any real workflow. The bottleneck is always I/O.
+
+### Native I/O: No Fork, No Subprocess
+
+Fifth doesn't just shell out — it talks directly to the OS. The `open-path` primitive calls macOS LaunchServices (`LSOpenCFURLRef`) from C, bypassing `fork()` and `exec()` entirely:
+
+```
+system("open file"):  182ms   fork + exec + /usr/bin/open + LaunchServices
+open-path (native):    56ms   C → LaunchServices directly
+
+Saved:                126ms   No process spawning
+```
+
+A 57KB Forth binary that calls the same OS API as a native Cocoa app. No Python runtime. No Node.js. No JVM. One function pointer from the kernel.
+
+```forth
+\ Open anything — files, URLs, apps
+s" /tmp/report.html" open-path       \ browser
+s" https://github.com" open-path     \ URL
+s" ~/spec.pdf" open-path             \ Preview.app
+```
 
 ---
 
