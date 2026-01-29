@@ -123,6 +123,8 @@ fifth hello.fs
 
 ## Usage Examples
 
+> **[View the showcase →](https://quivent.github.io/fifth/showcase.html)** — 30+ examples generated entirely in Fifth, running in your browser.
+
 ### Generate HTML Reports
 
 ```forth

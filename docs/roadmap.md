@@ -8,7 +8,7 @@ Vision, planned improvements, and priorities for Fifth.
 
 ### The Core Thesis
 
-The software industry's complexity is largely artificial. Most applications can be built with far less. A vocabulary of 150 words and a 4.6MB runtime can produce applications that actually work.
+The software industry's complexity is largely artificial. Most applications can be built with far less — and increasingly, they'll be built by AI agents that benefit from minimal, verifiable systems. A vocabulary of 150 words and a 4.6MB runtime can produce applications that actually work.
 
 ### The Numbers
 
@@ -35,6 +35,15 @@ The software industry's complexity is largely artificial. Most applications can 
 | Live system | Edit, save, see update in 200ms |
 | Network vocabulary | REST API to HTML in 50 lines |
 | Portable documents | Same program, Markdown/LaTeX/SVG output |
+
+### Agent-Specific Goals
+
+| Goal | Definition of Done |
+|------|-------------------|
+| Stack verification | Built-in stack effect checker for compile-time validation |
+| Error taxonomy | Structured error codes agents can parse and fix programmatically |
+| Literate mode | Auto-generate docs from stack comments |
+| Example corpus | 100+ tested examples for LLM training and few-shot prompting |
 
 ---
 

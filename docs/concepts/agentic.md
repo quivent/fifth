@@ -56,3 +56,7 @@ Fifth has 75 words. An LLM can hold it all in context.
 - Testing
 
 No hidden state. No surprises.
+
+---
+
+For the complete analysis with quantitative error models, performance measurements, and comparative examples, see [Agentic Coding: Why Fifth is Ideal for AI-Assisted Development](../agentic-coding). For the longer-term convergence of stack machines, dedicated hardware, and AI agents, see [The Convergence: Forth, Stack Silicon, and the Agentic Era](../stack-silicon).

@@ -1,6 +1,6 @@
 # Forth Reference
 
-A consolidated reference for Forth concepts and Fifth's implementation.
+A consolidated reference for Forth concepts and Fifth's implementation. Stack effect notation `( before -- after )` serves as both human documentation and machine-verifiable contracts — an LLM can check that compositions are correct without executing them.
 
 ---
 
@@ -236,6 +236,8 @@ make
 | `Stack underflow` | Consumed value not present |
 | `Invalid memory address` | Stack imbalance, bad pointer |
 | `word is redefined` | Used `INCLUDE` not `REQUIRE` |
+
+These errors are deterministic and immediate. A stack underflow crashes on the first execution, not in production. This binary failure mode makes Fifth more reliable for code generation than languages with subtle runtime errors — wrong code fails fast instead of silently producing wrong results.
 
 ### S" vs S\"
 

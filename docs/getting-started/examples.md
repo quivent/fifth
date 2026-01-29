@@ -47,4 +47,16 @@ html-end
 html-fid @ close-file throw
 ```
 
-See `examples/` in the repo for 20+ more.
+See `examples/` in the repo for 30+ more.
+
+---
+
+## Why These Patterns Work
+
+Each example demonstrates Fifth's composability — for humans and agents alike:
+
+- **Small words**: `h1.`, `td.`, `stat-card-n` each do one thing
+- **Stack discipline**: Every word's effect is documented and verifiable
+- **Escape safety**: `text` escapes by default; security is the default, not an afterthought
+
+For AI agents, these patterns are reliable because they're mechanically checkable. An LLM can verify that `42 s" Users" stat-card-n` has the right stack signature without executing it.

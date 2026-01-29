@@ -234,6 +234,16 @@ Need instant startup?
 | Embedded systems | C Codegen |
 | Distribution | LLVM or C Codegen |
 
+### For AI-Assisted Development
+
+Agents benefit from fast iteration cycles. Unlike humans, an agent can explore hundreds of implementations in minutes — fast compilation matters more than maximum single-pass optimization.
+
+| Phase | Backend | Why |
+|-------|---------|-----|
+| Exploration | Interpreter | Instant feedback, no compile delay |
+| Optimization | Cranelift | Profile, rewrite, recompile in <100ms loops |
+| Production | LLVM | Agent has converged on optimal structure |
+
 ---
 
 ## Technical Details

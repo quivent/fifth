@@ -16,6 +16,8 @@ Fifth follows three non-negotiable principles:
 
 **No allocation by default.** Static buffers. Temp files. Stack manipulation. If you reach for `allocate` and `free`, you are writing C with a bad syntax. Fifth uses two 1KB string buffers and file I/O. That handles everything from HTML generation to SQL result parsing.
 
+These principles matter doubly for AI-generated code. Agents produce more reliable Fifth than most languages because the vocabulary is minimal (fewer hallucinated method names), composability is explicit (stack effects verify mechanically), and failure modes are immediate (crashes, not silent corruption).
+
 ### Why We Shell Out
 
 Fifth talks to SQLite through the `sqlite3` CLI, not through C bindings. This is deliberate:
@@ -24,6 +26,7 @@ Fifth talks to SQLite through the `sqlite3` CLI, not through C bindings. This is
 - **Universal availability.** `sqlite3` ships with macOS. It is one `apt install` away on Linux.
 - **Inspectable.** Every query produces a temp file you can `cat`. Try debugging a C binding that returns a null pointer.
 - **Good enough.** For dashboards and viewers, the overhead of spawning a process is irrelevant. We are generating HTML, not trading equities.
+- **Agent-debuggable.** Every subprocess produces inspectable artifacts. An agent can read `/tmp/fifth-query.txt` to debug SQL results — something impossible with C bindings that return opaque pointers.
 
 When to reconsider: if you need transactions, prepared statements, or sub-millisecond query latency, the shell-out pattern breaks down. That is not what Fifth is for today.
 

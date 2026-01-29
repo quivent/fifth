@@ -33,7 +33,7 @@ fifth examples/project-dashboard.fs
 
 ## Your First Program
 
-Create `hello.fs`:
+Create `hello.fs`. Notice the stack comments `( -- )` and `( n -- )` — these are contracts. A human reads them as documentation; an LLM can verify that `countdown` consumes one number and produces nothing. This mechanical checkability is what makes Fifth reliable for code generation.
 
 ```forth
 \ hello.fs - My first Fifth program

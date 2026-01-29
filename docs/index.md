@@ -59,6 +59,8 @@ Or [build from source](getting-started/installation).
 
 Stack effects are contracts. Either the stack is correct and the code works, or it's wrong and you get an immediate crash. No hidden state. No surprises.
 
+These same properties make Fifth reliable for AI-assisted development: explicit state means fewer hallucinations, 75 words means an LLM can hold the entire language in context, and documented stack effects enable mechanical verification of generated code.
+
 [Learn more about Fifth for LLMs →](concepts/agentic)
 
 ---
@@ -102,4 +104,4 @@ s" /tmp/page.html" open-path          \ 48ms — direct OS call, no subprocess
 - **SQLite Interface** — Query databases via shell-out pattern
 - **String Buffers** — Safe string manipulation without allocation
 
-[Get Started →](getting-started/quickstart)
+[Get Started →](getting-started/quickstart) · [View Showcase →](showcase.html)
