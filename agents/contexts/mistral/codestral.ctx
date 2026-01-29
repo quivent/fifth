@@ -1,0 +1,130 @@
+# Fifth Reference (Codestral)
+
+## Core Syntax
+
+```forth
+\ Word definition
+: name ( stack-before -- stack-after ) body ;
+
+\ String literal (TWO stack items: addr, len)
+s" text"
+
+\ Whitespace = ONLY delimiter
+</div>nl   \ BAD - undefined
+</div> nl  \ GOOD - two words
+```
+
+## Buffer Operations
+
+```forth
+\ Primary buffer
+str-reset              ( -- )
+s" x" str+             ( addr u -- )
+str$                   ( -- addr u )
+
+\ Secondary buffer
+str2-reset str2+ str2$
+
+\ NEVER use s+ (crashes)
+```
+
+## Stack Ops
+
+```forth
+2dup    ( a u -- a u a u )
+2drop   ( a u -- )
+2swap   ( a1 u1 a2 u2 -- a2 u2 a1 u1 )
+2>r     ( a u -- ) R:( -- a u )
+2r>     R:( a u -- ) ( -- a u )
+```
+
+## HTML Generation
+
+```forth
+\ Setup
+s" /tmp/out.html" w/o create-file throw html>file
+
+\ Document structure
+s" Title" html-head
+  <style> s" css" text </style>
+html-body
+  <div> s" class" s" name" attr>
+    s" content" text
+  </div>
+html-end
+
+\ Cleanup
+html-fid @ close-file throw
+```
+
+## HTML Words
+
+```forth
+<div>      ( -- )        \ open tag
+</div>     ( -- )        \ close tag
+attr>      ( name-a name-u val-a val-u -- )
+text       ( addr u -- ) \ escaped output
+raw        ( addr u -- ) \ unescaped (danger)
+nl         ( -- )        \ newline
+```
+
+## SQL Pattern
+
+```forth
+s" db.db" s" SELECT a,b FROM t" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if
+    2dup 0 sql-field type
+    2dup 1 sql-field type
+    2drop
+  else 2drop then
+repeat 2drop
+sql-close
+```
+
+## UI Components
+
+```forth
+s" 99" s" Users" stat-card
+s" class" s" Label" badge
+s" id" s" Title" tab
+s" id" ... tab-content
+```
+
+## Examples
+
+```forth
+\ Define greeting word
+: greet ( name-a name-u -- )
+  <span> s" Hello, " text text </span> ;
+
+\ Use it
+s" World" greet
+
+\ Build class string
+: card-class ( -- addr u )
+  str-reset
+  s" card " str+
+  s" shadow " str+
+  s" rounded" str+
+  str$ ;
+```
+
+## Errors
+
+```
+"Undefined word: X"    -> check spacing
+"Invalid memory"       -> stack imbalance, use .s
+"Stack underflow"      -> missing input
+```
+
+## Load System
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs
+use lib:str.fs
+use lib:html.fs
+use lib:sql.fs
+```

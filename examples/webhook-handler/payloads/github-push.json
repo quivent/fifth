@@ -1,0 +1,30 @@
+{
+  "event": "push",
+  "ref": "refs/heads/main",
+  "repository": {
+    "full_name": "user/repo",
+    "html_url": "https://github.com/user/repo"
+  },
+  "pusher": {
+    "name": "developer",
+    "email": "dev@example.com"
+  },
+  "commits": [
+    {
+      "id": "abc123",
+      "message": "Fix bug in parser",
+      "author": {
+        "name": "Developer",
+        "email": "dev@example.com"
+      }
+    },
+    {
+      "id": "def456",
+      "message": "Add unit tests",
+      "author": {
+        "name": "Developer",
+        "email": "dev@example.com"
+      }
+    }
+  ]
+}

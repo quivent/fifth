@@ -1,0 +1,25 @@
+# Fifth (Forth + libs)
+
+## Rules
+1. `</div> nl` not `</div>nl` (space-separate words)
+2. Strings = `( addr u )` pairs: `2dup 2drop 2swap`
+3. Build strings: `str-reset s" a" str+ s" b" str+ str$`
+4. Stack comments: `( in -- out )`
+5. Quotes: `s\" use \"this\""`
+6. No `s+`, no `allocate`, no single-quoted SQL
+
+## Patterns
+```forth
+\ HTML: text escapes, raw doesn't
+s" Title" html-head html-body s" Hi" h1. html-end
+
+\ SQL: pipe-delimited results
+s" db" s" SELECT *" sql-exec sql-open
+begin sql-row? while 2dup 0 sql-field type 2drop repeat 2drop sql-close
+
+\ Strings
+str-reset s" Hello " str+ name str+ str$
+```
+
+## Run
+`./fifth file.fs` or `./fifth -e "2 3 + ."`

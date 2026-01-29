@@ -1,0 +1,482 @@
+# Fifth Language Context (Extended)
+
+Fifth is a practical Forth ecosystem with HTML generation, SQL queries, and string handling. This context provides comprehensive coverage for Gemini's extended window.
+
+## Core Philosophy
+
+Fifth follows Forth's minimalist design: stack-based execution, small composable words, no hidden state. Modern additions handle real-world tasks (web output, databases) while maintaining Forth discipline.
+
+## Absolute Constraints
+
+### 1. Whitespace Tokenization (Most Common Error)
+
+Forth tokenizes ONLY on whitespace. Every word must be space-separated.
+
+```forth
+\ WRONG - These are single undefined words:
+</div>nl          \ "undefined word </div>nl"
+<div.>text        \ "undefined word <div.>text"
+s"hello"          \ "undefined word s\"hello\""
+
+\ RIGHT - Space-separated:
+</div> nl
+<div.> text
+s" hello"
+```
+
+This applies everywhere. Even `s"` requires a space before the string.
+
+### 2. String Representation
+
+Strings are ALWAYS `( addr u )` pairs - memory address and byte length.
+
+```forth
+s" hello"         \ Pushes: addr u (two stack items)
+dup               \ WRONG: Only duplicates length
+2dup              \ RIGHT: Duplicates both addr and length
+
+\ String pair operations:
+2dup              ( a u -- a u a u )
+2drop             ( a u -- )
+2swap             ( a1 u1 a2 u2 -- a2 u2 a1 u1 )
+2over             ( a1 u1 a2 u2 -- a1 u1 a2 u2 a1 u1 )
+2>r               ( a u -- ) R:( -- a u )
+2r>               ( -- a u ) R:( a u -- )
+```
+
+### 3. No Dynamic String Allocation
+
+Fifth uses static buffers. Dynamic concatenation crashes.
+
+```forth
+\ WRONG - Memory corruption:
+s" hello" s" world" s+
+
+\ RIGHT - Buffer pattern:
+str-reset                 \ Clear buffer
+s" hello" str+            \ Append to buffer
+s" world" str+            \ Append more
+str$                      \ Get result: ( addr u )
+```
+
+**Two Independent Buffers:**
+
+| Buffer | Words | Purpose |
+|--------|-------|---------|
+| Primary | `str-reset` `str+` `str$` `str-char` | General building |
+| Secondary | `str2-reset` `str2+` `str2$` | Used by `html-escape` |
+
+The secondary buffer exists so `html-escape` doesn't corrupt strings you're building.
+
+### 4. Stack Comments Required
+
+Every word definition needs stack effect documentation:
+
+```forth
+: process-name ( addr u -- addr' u' )
+  \ Transform a name string
+  ... ;
+
+: stat-card ( n label$ -- )
+  \ Display stat with label; consumes both
+  ... ;
+```
+
+### 5. String Escaping
+
+Standard `s"` has NO escape sequences. Backslash is literal.
+
+```forth
+\ s" treats backslash literally:
+s" path\to\file"          \ Contains actual backslashes
+s" can't use \"quotes\""  \ WRONG: backslash is just backslash
+
+\ s\" supports escapes:
+s\" She said \"hello\""   \ Embedded quotes work
+s\" line1\nline2"         \ Newline works
+```
+
+### 6. SQL Quote Collision
+
+Shell commands are wrapped in single quotes. SQL string literals use single quotes. They collide.
+
+```forth
+\ WRONG - Quote collision breaks shell:
+s" db.db" s" SELECT * FROM users WHERE name='Alice'" sql-exec
+
+\ WORKAROUNDS:
+\ 1. Numeric comparisons
+s" db.db" s" SELECT * FROM users WHERE id=42" sql-exec
+
+\ 2. LIKE with wildcards (no quotes needed sometimes)
+s" db.db" s" SELECT * FROM users ORDER BY name" sql-exec
+
+\ 3. Build query with buffer (for complex cases)
+```
+
+## Library Reference
+
+### str.fs - String Buffers
+
+```forth
+require ~/.fifth/lib/str.fs
+
+\ Primary buffer (4096 bytes)
+str-reset               ( -- )           \ Clear
+str+                    ( addr u -- )    \ Append string
+str-char                ( c -- )         \ Append character
+str$                    ( -- addr u )    \ Get contents
+str-overflow?           ( -- flag )      \ Check overflow
+
+\ Secondary buffer (4096 bytes)
+str2-reset str2+ str2$ str2-char
+
+\ Parsing
+parse-pipe              ( addr u n -- addr u field-addr field-u )
+parse-tab               ( addr u n -- addr u field-addr field-u )
+parse-comma             ( addr u n -- addr u field-addr field-u )
+
+\ Comparison
+str=                    ( a1 u1 a2 u2 -- flag )
+
+\ Conversion
+n>str                   ( n -- addr u )
+```
+
+### html.fs - HTML Generation
+
+```forth
+require ~/.fifth/lib/html.fs
+
+\ Output target
+html>file               ( fid -- )       \ Direct output to file
+html>stdout             ( -- )           \ Direct to stdout
+
+\ Core output
+text                    ( addr u -- )    \ Escaped output
+raw                     ( addr u -- )    \ Unescaped (XSS danger!)
+nl                      ( -- )           \ Newline
+
+\ Document structure
+html-head               ( title$ -- )    \ Start doc, leave <head> open
+html-body               ( -- )           \ Close head, open body
+html-end                ( -- )           \ Close body and html
+
+\ Tags
+<div> </div>           ( -- )           \ Basic
+<div.>                 ( class$ -- )    \ With class
+<div#>                 ( id$ -- )       \ With id
+<div#.>                ( id$ class$ -- )\ Both
+
+\ Same pattern for: span, section, header, footer, nav, main, aside
+
+\ Headings
+<h1> </h1>  <h2> </h2>  <h3> </h3>  <h4> </h4>
+
+\ Convenience (element with text content)
+h1. h2. h3. h4. p. li.  ( text$ -- )
+
+\ Tables
+<table> <table.> </table>
+<thead> </thead> <tbody> </tbody>
+<tr> <tr.> </tr>
+<th> </th> <td> <td.> </td>
+th. td. td-code.        ( text$ -- )
+
+\ Forms
+<form> </form>
+<input <button> <button.> </button>
+<label> </label>
+<textarea> </textarea>
+<select> </select> <option> </option>
+
+\ Links and media
+<a a> </a>              \ <a href=...>
+a.                      ( text$ url$ -- )
+<img img>               \ <img src=... alt=...>
+img.                    ( alt$ src$ -- )
+
+\ Attributes
+href= src= type= name= value= placeholder=
+attr=                   ( name$ value$ -- )
+attr-text=              ( name$ value$ -- ) \ Escaped value
+
+\ CSS
+<style> </style>
+css                     ( css-string$ -- )
+css-rule                ( selector$ props$ -- )
+```
+
+### sql.fs - SQLite Interface
+
+```forth
+require ~/.fifth/lib/sql.fs
+
+\ Execute query (results to temp file)
+sql-exec                ( db$ sql$ -- )
+
+\ Count query (returns number)
+sql-count               ( db$ sql$ -- n )
+
+\ Read results
+sql-open                ( -- )
+sql-row?                ( -- addr u flag )
+sql-field               ( addr u n -- addr u field$ )
+sql-close               ( -- )
+
+\ High-level
+sql-each                ( db$ sql$ xt -- )  \ xt: ( row$ -- )
+sql-dump                ( db$ sql$ -- )     \ Print to stdout
+
+\ Utilities
+sql-tables              ( db$ -- )          \ List tables
+sql-schema              ( db$ table$ -- )   \ Get CREATE statement
+sql-table-count         ( db$ table$ -- n ) \ Count rows
+```
+
+## Complete Example: Database Viewer
+
+```forth
+\ db-viewer.fs - View SQLite database as HTML
+
+require ~/.fifth/lib/core.fs
+
+\ Configuration
+s" /tmp/viewer.html" 2constant output-file
+s" ~/.claude/db/agents.db" 2constant db-path
+
+\ CSS Theme
+: dark-theme ( -- )
+  <style>
+  s" body" s" font-family:system-ui;background:#0f0f14;color:#e4e4e7;padding:2rem" css-rule
+  s" h1" s" color:#a78bfa" css-rule
+  s" .card" s" background:#18181b;border-radius:0.75rem;padding:1rem;margin:0.5rem" css-rule
+  s" table" s" width:100%;border-collapse:collapse" css-rule
+  s" th,td" s" padding:0.75rem;text-align:left;border-bottom:1px solid #333" css-rule
+  </style> ;
+
+\ Render agent card
+: agent-card ( row$ -- )
+  s" card" <div.>
+    <h3> 2dup 0 sql-field text 2drop </h3>
+    <p> 2dup 1 sql-field text 2drop </p>
+  </div> nl ;
+
+\ Main render
+: render-agents ( -- )
+  s" Agents" h2.
+  db-path s" SELECT name, role FROM agents LIMIT 20" sql-exec
+  sql-open
+  begin sql-row? while
+    dup 0> if agent-card else 2drop then
+  repeat 2drop
+  sql-close ;
+
+\ Generate page
+: generate ( -- )
+  output-file w/o create-file throw html>file
+
+  s" Agent Database" html-head
+  dark-theme
+  html-body
+
+  s" Agent Database" h1.
+  render-agents
+
+  html-end
+  html-fid @ close-file throw ;
+
+\ Entry point
+: main ( -- )
+  ." Generating..." cr
+  generate
+  ." Done: " output-file type cr ;
+
+main bye
+```
+
+## Complete Example: Dashboard with Stats
+
+```forth
+\ dashboard.fs - Stats dashboard
+
+require ~/.fifth/lib/core.fs
+
+s" /tmp/dashboard.html" 2constant output-file
+
+\ Stat card component
+: stat-card ( n label$ -- )
+  2>r
+  s" stat" <div.>
+    s" <b>" raw swap n>str raw s" </b>" raw
+    s" <span>" raw 2r> text s" </span>" raw
+  </div> nl ;
+
+\ Grid layout
+: stat-grid ( -- )
+  s" grid" <div.> nl
+    42 s" Projects" stat-card
+    18 s" Active" stat-card
+    156 s" Commits" stat-card
+  </div> nl ;
+
+\ CSS
+: stats-css ( -- )
+  <style>
+  s" .grid" s" display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem" css-rule
+  s" .stat" s" background:#1a1a2e;padding:1.5rem;border-radius:0.5rem;text-align:center" css-rule
+  s" .stat b" s" display:block;font-size:2rem;color:#8b5cf6" css-rule
+  s" .stat span" s" color:#888;font-size:0.8rem" css-rule
+  </style> ;
+
+: main ( -- )
+  output-file w/o create-file throw html>file
+  s" Dashboard" html-head
+  stats-css
+  html-body
+  s" Project Dashboard" h1.
+  stat-grid
+  html-end
+  html-fid @ close-file throw
+  ." Generated: " output-file type cr ;
+
+main bye
+```
+
+## Complete Example: Form Processing
+
+```forth
+\ form.fs - HTML form generation
+
+require ~/.fifth/lib/core.fs
+
+s" /tmp/form.html" 2constant output-file
+
+: form-css ( -- )
+  <style>
+  s" form" s" max-width:400px;margin:2rem auto" css-rule
+  s" label" s" display:block;margin-top:1rem;color:#888" css-rule
+  s" input,textarea" s" width:100%;padding:0.5rem;margin-top:0.25rem;background:#222;border:1px solid #444;color:#fff;border-radius:0.25rem" css-rule
+  s" button" s" margin-top:1.5rem;padding:0.75rem 1.5rem;background:#8b5cf6;color:#fff;border:none;border-radius:0.25rem;cursor:pointer" css-rule
+  </style> ;
+
+: contact-form ( -- )
+  <form>
+    <label> s" Name" text </label>
+    <input s" type='text' name='name' " raw s" Your name" placeholder= input> nl
+
+    <label> s" Email" text </label>
+    <input s" type='email' name='email' " raw s" you@example.com" placeholder= input> nl
+
+    <label> s" Message" text </label>
+    <textarea> </textarea> nl
+
+    <button.> s" submit" <span.> s" Send Message" text </span> </button>
+  </form> nl ;
+
+: main ( -- )
+  output-file w/o create-file throw html>file
+  s" Contact" html-head
+  form-css
+  html-body
+  s" Contact Us" h1.
+  contact-form
+  html-end
+  html-fid @ close-file throw ;
+
+main bye
+```
+
+## Debugging Guide
+
+### "Invalid memory address"
+Usually stack imbalance. Add `.s` to see stack state:
+```forth
+: debug-me ( a b -- c )
+  .s           \ Print stack here
+  +
+  .s           \ And here
+  ;
+```
+
+### Buffer overflow
+```forth
+str-overflow? if ." Buffer full!" cr then
+```
+
+### SQL returns nothing
+Check the query with `sql-dump`:
+```forth
+s" db.db" s" SELECT * FROM t LIMIT 5" sql-dump
+```
+
+### HTML not rendering
+- Check file was created: `html-fid @ .`
+- Check file was closed before viewing
+- View raw output: change `html>file` to `html>stdout`
+
+## File Structure Reference
+
+```
+~/fifth/
+  engine/           C interpreter source
+    fifth.c         Main entry
+    vm.c            Virtual machine
+    prims.c         Primitive words
+    io.c            I/O operations
+  compiler/         Rust native compiler
+  examples/         Example programs
+  fifth             CLI wrapper script
+
+~/.fifth/
+  lib/              Core libraries
+    str.fs          String buffers, parsing
+    html.fs         HTML generation
+    sql.fs          SQLite interface
+    template.fs     Template system
+    ui.fs           UI components
+    pkg.fs          Package manager
+    core.fs         Loads all libs
+  packages/         Installed packages
+```
+
+## Package System
+
+```forth
+require ~/.fifth/lib/pkg.fs
+
+\ Load from ~/.fifth/lib/
+use lib:core.fs
+use lib:str.fs
+
+\ Load from ~/.fifth/packages/
+use pkg:my-package
+```
+
+## Command Line
+
+```bash
+# Run a file
+./fifth examples/db-viewer.fs
+
+# One-liner
+./fifth -e "2 3 + . cr"
+
+# REPL
+./fifth
+
+# With library
+./fifth -e "require ~/.fifth/lib/pkg.fs use lib:core.fs"
+```
+
+## Anti-Patterns (Never Do These)
+
+| Don't | Why | Do Instead |
+|-------|-----|------------|
+| `s" a" s" b" s+` | Memory corruption | Buffer pattern |
+| `</div>nl` | One undefined word | `</div> nl` |
+| `s" He said \"hi\""` | s" has no escapes | `s\" He said \"hi\""` |
+| `raw` on user data | XSS vulnerability | `text` always |
+| `include file.fs` twice | Double definitions | `require` |
+| `s" WHERE x='y'"` | Quote collision | Avoid SQL string literals |
+| Missing stack comment | Unverifiable code | Always `( -- )` |

@@ -1,0 +1,148 @@
+# Fifth Context for Mistral Large
+
+## Overview
+
+Fifth is a Forth implementation for building HTML dashboards and data tools. Key characteristics:
+- Stack-based execution model
+- Whitespace-only token separation
+- Static memory (no dynamic allocation)
+- Shell-out to SQLite for database operations
+
+## Fundamental Constraints
+
+### Tokenization
+
+Whitespace is the ONLY delimiter. This is non-negotiable:
+
+```forth
+</div>nl     -- ERREUR: mot non defini
+</div> nl    -- CORRECT: deux mots separes
+```
+
+### String Representation
+
+Strings are (address, length) pairs on the stack:
+
+```forth
+s" bonjour"  ( -- addr 7 )
+2dup         ( addr 7 -- addr 7 addr 7 )
+type         ( addr 7 addr 7 -- addr 7 )  \ prints "bonjour"
+2drop        ( addr 7 -- )
+```
+
+### Memory Model
+
+Two static buffers for string building:
+
+```forth
+\ Buffer principal
+str-reset s" texte" str+ str$
+
+\ Buffer secondaire (utilise par html-escape)
+str2-reset s" texte" str2+ str2$
+```
+
+Never use `s+` or `allocate` - they cause memory corruption.
+
+## Standard Patterns
+
+### HTML Document
+
+```forth
+s" /tmp/page.html" w/o create-file throw html>file
+
+s" Titre de Page" html-head
+  <style> s" body{margin:20px}" text </style>
+  ui-css
+html-body
+  <main>
+    <h1> s" Bienvenue" text </h1>
+  </main>
+ui-js
+html-end
+
+html-fid @ close-file throw
+```
+
+### SQL Query
+
+```forth
+s" donnees.db" s" SELECT nom, valeur FROM items" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if
+    2dup 0 sql-field type cr
+    2dup 1 sql-field type cr
+    2drop
+  else 2drop then
+repeat 2drop
+sql-close
+```
+
+**Attention**: Avoid single quotes in SQL strings (conflict with shell quoting).
+
+### Word Definition
+
+```forth
+: nom-du-mot ( entrees -- sorties )
+  \ implementation
+  ;
+
+\ Exemple concret:
+: afficher-carte ( titre-addr titre-u valeur-addr valeur-u -- )
+  2swap  \ mettre titre en haut
+  <div> s" class" s" card" attr>
+    <h3> text </h3>
+    <p> text </p>
+  </div> ;
+```
+
+## Stack Operations
+
+| Mot | Effet | Description |
+|-----|-------|-------------|
+| `dup` | ( a -- a a ) | Dupliquer |
+| `drop` | ( a -- ) | Supprimer |
+| `swap` | ( a b -- b a ) | Echanger |
+| `2dup` | ( a b -- a b a b ) | Dupliquer paire |
+| `2drop` | ( a b -- ) | Supprimer paire |
+| `2swap` | ( a b c d -- c d a b ) | Echanger paires |
+| `2>r` | ( a b -- ) R:( -- a b ) | Sauvegarder sur pile retour |
+| `2r>` | R:( a b -- ) ( -- a b ) | Recuperer de pile retour |
+
+## UI Components
+
+```forth
+\ Carte de statistique
+s" 42" s" Utilisateurs" stat-card
+
+\ Badge
+s" badge-success" s" Actif" badge
+
+\ Onglets
+s" tab1" s" Premier" tab
+s" tab2" s" Deuxieme" tab
+```
+
+## Error Diagnosis
+
+| Symptome | Cause Probable | Solution |
+|----------|----------------|----------|
+| "Undefined word" | Espace manquant ou faute | Verifier tokenisation |
+| "Invalid memory address" | Desequilibre de pile | Utiliser `.s` pour tracer |
+| Corruption memoire | Utilisation de `s+` | Utiliser pattern buffer |
+| Sortie vide | Fichier non ferme | Appeler `close-file` |
+
+## Project Structure
+
+```
+~/.fifth/
+  lib/
+    core.fs  - Charge toutes les bibliotheques
+    str.fs   - Operations sur chaines
+    html.fs  - Generation HTML
+    sql.fs   - Interface SQLite
+    ui.fs    - Composants UI
+```
+
+Load with: `require ~/.fifth/lib/pkg.fs` then `use lib:core.fs`

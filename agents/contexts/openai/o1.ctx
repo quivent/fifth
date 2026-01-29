@@ -1,0 +1,92 @@
+# Fifth Context for o1 (Reasoning Model)
+
+## The Puzzle
+
+Fifth is Forth evolved. Your task: reason through stack-based computation where:
+- Every operation consumes and produces stack items
+- Whitespace is the ONLY delimiter (critical insight)
+- Memory is static buffers, not dynamic allocation
+
+## Reasoning Constraints
+
+**Invariant 1**: Token boundaries are whitespace only.
+- `</div>nl` = single undefined token
+- `</div> nl` = two valid tokens
+- This is the #1 source of bugs. Always verify spacing.
+
+**Invariant 2**: Stack must balance.
+- Every word has signature `( consumed -- produced )`
+- Imbalance = crash with cryptic "Invalid memory address"
+- Trace execution mentally: what's on stack at each point?
+
+**Invariant 3**: Strings are (address, length) pairs.
+- `s" hello"` pushes TWO items: address AND length
+- `2dup`, `2drop`, `2swap` operate on pairs
+- Forgetting this = operating on half a string = crash
+
+## Buffer Algebra
+
+Two independent buffers prevent corruption:
+
+```
+Primary:   str-reset -> str+ -> str+ -> str$ -> (addr u)
+Secondary: str2-reset -> str2+ -> str2$ -> (addr u)
+```
+
+**Problem**: What if you need to escape HTML inside a string build?
+**Solution**: `html-escape` uses secondary buffer, so primary is safe.
+
+## Stack Manipulation Puzzles
+
+Given: `( a1 u1 a2 u2 )` - two strings on stack
+
+Q: How to type both, second first?
+A: `2swap type type` - NO! Need: `2swap 2dup type 2drop type` accounting for consumption
+
+Trace it:
+```
+( a1 u1 a2 u2 )     -- start
+2swap               -- ( a2 u2 a1 u1 )
+type                -- ( a2 u2 ) -- prints string 1
+type                -- ( ) -- prints string 2
+```
+
+Wait, `type` consumes (addr u). So `2swap type type` IS correct here.
+
+## The SQL Quoting Puzzle
+
+Shell command: `sqlite3 db.db 'SELECT ...'`
+SQL literal: `WHERE name='John'`
+
+Nested quotes conflict. Solutions:
+1. Use numeric comparisons where possible
+2. Use `||` concatenation in SQL
+3. Use double-quotes for identifiers
+
+## Reasoning Template for Fifth Problems
+
+1. **Parse tokens**: Split by whitespace, verify each is defined
+2. **Trace stack**: Track (addr u) pairs explicitly
+3. **Check buffers**: Which buffer is active? Nested operations?
+4. **Verify cleanup**: All stack items consumed or explicitly dropped?
+
+## Example Reasoning
+
+Problem: Build HTML with dynamic content
+
+```forth
+: show-user ( addr u -- )  \ username on stack
+  <div>
+    s" Hello, " text
+    text              \ consumes the (addr u) parameter
+  </div> ;
+```
+
+Trace:
+- Enter with `( addr u )`
+- `<div>` emits, stack unchanged
+- `s" Hello, "` pushes `( addr u addr2 u2 )`
+- `text` consumes `( addr2 u2 )`, leaves `( addr u )`
+- `text` consumes `( addr u )`, stack empty
+- `</div>` emits, stack empty
+- Exit clean

@@ -1,0 +1,224 @@
+# Fifth Language Context (Full)
+
+Fifth is a practical Forth ecosystem. This context makes you Fifth-fluent.
+
+## Core Mental Model
+
+Fifth = Forth + modern libraries (HTML, SQL, strings) + shell integration. Everything is stack-based. Words (functions) consume and produce stack items. No dynamic memory allocation.
+
+## Absolute Constraints (Violation = Crash)
+
+### 1. Whitespace Tokenization
+```forth
+\ WRONG: </div>nl is ONE undefined word
+</div>nl
+
+\ RIGHT: Two words, space-separated
+</div> nl
+```
+Every word must be space-separated. No exceptions. `<div>` and `</div>` are separate words.
+
+### 2. No Dynamic Allocation
+```forth
+\ WRONG: Will crash
+s" hello" s" world" s+
+
+\ RIGHT: Buffer pattern
+str-reset
+s" hello" str+
+s" world" str+
+str$  \ Returns ( addr u )
+```
+
+Two static buffers exist:
+- Primary: `str-reset` `str+` `str$` `str-char`
+- Secondary: `str2-reset` `str2+` `str2$` (used by `html-escape`)
+
+**Rule**: Never nest operations on the same buffer. `html-escape` uses secondary, so building inside escaped content uses primary.
+
+### 3. String Pairs
+Strings are always `( addr u )` - address and length. Never just an address.
+```forth
+s" hello"     \ Pushes addr u
+2dup          \ Copy string pair
+2drop         \ Discard string pair
+2swap         \ Exchange two string pairs
+2>r ... 2r>   \ Save/restore on return stack
+```
+
+### 4. Stack Comments Required
+```forth
+: my-word ( input1 input2 -- output1 output2 )
+  \ Stack effects must be documented and balanced
+  ... ;
+```
+
+### 5. String Escaping
+```forth
+\ s" has NO escape sequences
+s" can't use \"quotes\""  \ WRONG: backslash is literal
+
+\ s\" supports escapes
+s\" can use \"quotes\""   \ RIGHT
+```
+
+### 6. SQL Single Quotes
+Shell commands use single quotes. SQL strings use single quotes. They conflict.
+```forth
+\ WRONG: Quote collision
+s" SELECT * FROM t WHERE name='foo'" sql-exec
+
+\ RIGHT: Avoid string literals in SQL, use numeric comparisons
+s" SELECT * FROM t WHERE id=42" sql-exec
+```
+
+## Stack Discipline
+
+Common stack manipulation:
+```forth
+dup     ( n -- n n )
+drop    ( n -- )
+swap    ( a b -- b a )
+over    ( a b -- a b a )
+rot     ( a b c -- b c a )
+-rot    ( a b c -- c a b )
+2dup    ( a b -- a b a b )      \ For string pairs
+2drop   ( a b -- )
+2swap   ( a b c d -- c d a b )
+2>r     ( a b -- ) R:( -- a b )
+2r>     ( -- a b ) R:( a b -- )
+```
+
+## Library Patterns
+
+### HTML Output
+```forth
+require ~/.fifth/lib/core.fs
+
+s" /tmp/out.html" w/o create-file throw html>file
+
+s" Page Title" html-head    \ Opens document, leaves <head> open
+  <style>
+    s" body" s" font-family:sans-serif" css-rule
+  </style>
+html-body                   \ Closes </head>, opens <body>
+
+  s" Hello" h1.             \ <h1>Hello</h1>
+  s" World" p.              \ <p>World</p>
+
+  s" container" <div.>      \ <div class='container'>
+    s" Safe <html>" text    \ Escapes: Safe &lt;html&gt;
+    s" <b>Raw</b>" raw      \ No escape: <b>Raw</b>
+  </div> nl
+
+html-end                    \ Closes </body></html>
+html-fid @ close-file throw
+```
+
+Key words:
+- `text ( addr u -- )` - Output with HTML escaping
+- `raw ( addr u -- )` - Output without escaping (danger: XSS)
+- `nl` - Newline
+- `h1.` `h2.` `p.` `li.` - Content convenience words
+- `<div.> ( class$ -- )` - Div with class
+- `css-rule ( selector$ props$ -- )` - CSS rule inside `<style>`
+
+### SQL Queries
+```forth
+s" path/to.db" s" SELECT col1, col2 FROM t" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if
+    2dup 0 sql-field type   \ First column
+    2dup 1 sql-field type   \ Second column
+    2drop
+  else 2drop then
+repeat 2drop
+sql-close
+```
+
+Results are pipe-delimited. `sql-field` extracts 0-indexed fields.
+
+### String Building
+```forth
+: build-greeting ( name$ -- result$ )
+  str-reset
+  s" Hello, " str+
+  str+                      \ name from stack
+  s" !" str+
+  str$ ;                    \ Return addr u
+```
+
+## File Structure
+
+```
+~/fifth/           Project root
+  engine/          C interpreter
+  examples/        Example applications
+  fifth            CLI wrapper
+
+~/.fifth/          Package system (FIFTH_HOME)
+  lib/             Core libraries
+    str.fs         String buffers
+    html.fs        HTML generation
+    sql.fs         SQLite interface
+    core.fs        Loads all
+  packages/        Installed packages
+```
+
+## Common Patterns
+
+### Conditional Output
+```forth
+: maybe-badge ( flag label$ -- )
+  rot if
+    s" badge" <span.> text </span>
+  else 2drop then ;
+```
+
+### Loop Over SQL
+```forth
+: process-each ( db$ sql$ xt -- )
+  >r sql-exec sql-open
+  begin sql-row? while
+    dup 0> if r@ execute else 2drop then
+  repeat 2drop
+  sql-close r> drop ;
+```
+
+### Number to String
+```forth
+42 n>str type   \ Prints "42"
+```
+
+## Debugging
+
+- Stack underflow = "Invalid memory address"
+- Add `.s` to inspect stack: `dup .s drop`
+- Check buffer overflow: `str-overflow?`
+
+## What NOT To Do
+
+1. Never `allocate`/`free` for strings
+2. Never `include` same file twice (use `require`)
+3. Never put single-quoted SQL literals in shell
+4. Never assume `s"` strings persist (they're transient)
+5. Never redefine standard words (`emit-file`, `type`, etc.)
+6. Never create words with embedded whitespace
+7. Never use `raw` for user-provided data
+
+## Running
+
+```bash
+./fifth examples/db-viewer.fs     # Run example
+./fifth -e "2 3 + . cr"           # One-liner
+./fifth                           # REPL
+```
+
+## Package System
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs          \ From ~/.fifth/lib/
+use pkg:my-package       \ From ~/.fifth/packages/
+```

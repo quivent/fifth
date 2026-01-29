@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fifth — Stack-Based Programming for the Modern Age</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="../../brand/favicon.svg">
+
+  <!-- Meta -->
+  <meta name="description" content="A curated collection of 29 practical applications showcasing stack-based programming. Agentic AI, shell-out patterns, HTML generation, SQLite integration. No dependencies.">
+  <meta name="theme-color" content="#0a0a0a">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Fifth Examples">
+  <meta property="og:description" content="Stack-based programming for the modern age. 29 production-ready examples.">
+  <meta property="og:site_name" content="Fifth">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Fifth Examples">
+  <meta name="twitter:description" content="Stack-based programming for the modern age. 29 production-ready examples.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================
+       FIFTH — Design System
+       Minimalist. Purposeful. Precise.
+       ======================================== */
+
+    :root {
+      /* Monochromatic palette with single accent */
+      --black: #0a0a0a;
+      --gray-950: #0f0f0f;
+      --gray-900: #171717;
+      --gray-800: #262626;
+      --gray-700: #404040;
+      --gray-600: #525252;
+      --gray-500: #737373;
+      --gray-400: #a3a3a3;
+      --gray-300: #d4d4d4;
+      --gray-200: #e5e5e5;
+      --gray-100: #f5f5f5;
+      --white: #fafafa;
+
+      /* The accent — a refined indigo */
+      --accent: #6366f1;
+      --accent-dim: rgba(99, 102, 241, 0.15);
+
+      /* Semantic */
+      --bg: var(--black);
+      --surface: var(--gray-950);
+      --surface-elevated: var(--gray-900);
+      --border: var(--gray-800);
+      --border-subtle: var(--gray-900);
+      --text: var(--gray-100);
+      --text-secondary: var(--gray-400);
+      --text-tertiary: var(--gray-500);
+
+      /* Typography scale */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Spacing scale (4px base) */
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-24: 6rem;
+      --space-32: 8rem;
+
+      /* Transitions */
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --duration: 200ms;
+    }
+
+    /* ========================================
+       Reset
+       ======================================== */
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ========================================
+       Layout
+       ======================================== */
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--space-6);
+    }
+
+    /* ========================================
+       Logo & Brand
+       ======================================== */
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      position: relative;
+    }
+
+    /* The "V" mark — represents Fifth (Roman numeral) and the stack */
+    .logo-mark svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .logo-type {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    /* ========================================
+       Navigation
+       ======================================== */
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: var(--space-4) 0;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: var(--space-8);
+    }
+
+    .nav-link {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--duration) var(--ease);
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .nav-cta {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--accent);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      transition: opacity var(--duration) var(--ease);
+    }
+
+    .nav-cta:hover {
+      opacity: 0.8;
+    }
+
+    .nav-cta svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ========================================
+       Hero
+       ======================================== */
+
+    .hero {
+      padding: var(--space-32) 0 var(--space-24);
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-8);
+    }
+
+    .hero-badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: var(--space-6);
+    }
+
+    .hero h1 span {
+      color: var(--text-tertiary);
+    }
+
+    .hero-sub {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin: 0 auto var(--space-12);
+      line-height: 1.7;
+    }
+
+    /* Stats row */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-16);
+      padding: var(--space-8) 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--space-12);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      font-family: var(--font-mono);
+    }
+
+    .stat-label {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: var(--space-1);
+    }
+
+    /* Code snippet */
+    .hero-code {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+    }
+
+    .hero-code code {
+      color: var(--text);
+    }
+
+    .hero-code-comment {
+      color: var(--text-tertiary);
+    }
+
+    /* ========================================
+       Section Headers
+       ======================================== */
+
+    .section {
+      padding: var(--space-24) 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: var(--space-8);
+      padding-bottom: var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+    }
+
+    .section-count {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+    }
+
+    /* ========================================
+       Cards Grid
+       ======================================== */
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .card {
+      display: block;
+      padding: var(--space-6);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      transition:
+        border-color var(--duration) var(--ease),
+        transform var(--duration) var(--ease);
+    }
+
+    .card:hover {
+      border-color: var(--gray-700);
+      transform: translateY(-2px);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: var(--space-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-tertiary);
+      opacity: 0;
+      transform: translateX(-4px);
+      transition:
+        opacity var(--duration) var(--ease),
+        transform var(--duration) var(--ease);
+    }
+
+    .card:hover .card-title svg {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Card accent line on hover */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: var(--space-6);
+      right: var(--space-6);
+      height: 1px;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity var(--duration) var(--ease);
+    }
+
+    .card {
+      position: relative;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    /* ========================================
+       Featured Card (Agentic)
+       ======================================== */
+
+    .card-featured {
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-elevated) 100%);
+      border-color: var(--gray-700);
+    }
+
+    .card-featured .card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: var(--space-3);
+    }
+
+    .card-featured .card-badge::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* ========================================
+       Footer
+       ======================================== */
+
+    .footer {
+      padding: var(--space-16) 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-brand {
+      display: flex;
+      justify-content: center;
+      margin-bottom: var(--space-6);
+    }
+
+    .footer-tagline {
+      font-size: 0.875rem;
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-8);
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-8);
+    }
+
+    .footer-link {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--duration) var(--ease);
+    }
+
+    .footer-link:hover {
+      color: var(--text);
+    }
+
+    .footer-copy {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: var(--space-8);
+    }
+
+    /* ========================================
+       Responsive
+       ======================================== */
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .stats {
+        gap: var(--space-8);
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+      }
+
+      .hero {
+        padding: var(--space-24) 0 var(--space-16);
+      }
+
+      .section {
+        padding: var(--space-16) 0;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-links {
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+    }
+
+    /* ========================================
+       Focus States (Accessibility)
+       ======================================== */
+
+    :focus {
+      outline: none;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .card:focus-visible {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    /* ========================================
+       Scroll Progress
+       ======================================== */
+
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 1px;
+      background: var(--accent);
+      z-index: 200;
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+
+    /* ========================================
+       Selection
+       ======================================== */
+
+    ::selection {
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+
+    /* ========================================
+       Subtle Animations
+       ======================================== */
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-badge,
+    .hero h1,
+    .hero-sub,
+    .stats,
+    .hero-code {
+      animation: fade-in 0.6s var(--ease) backwards;
+    }
+
+    .hero h1 { animation-delay: 0.1s; }
+    .hero-sub { animation-delay: 0.2s; }
+    .stats { animation-delay: 0.3s; }
+    .hero-code { animation-delay: 0.4s; }
+
+    /* Stagger cards */
+    .card {
+      animation: fade-in 0.5s var(--ease) backwards;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress -->
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Minimalist "V" mark representing Fifth (Roman numeral) -->
+            <path d="M6 8L16 24L26 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Subtle horizontal line suggesting stack layers -->
+            <path d="M10 8H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+          </svg>
+        </div>
+        <span class="logo-type">Fifth</span>
+      </div>
+      <div class="nav-links">
+        <a href="#examples" class="nav-link">Examples</a>
+        <a href="../../README.md" class="nav-link">Documentation</a>
+        <a href="../USE-CASES.md" class="nav-link">Use Cases</a>
+      </div>
+      <a href="https://github.com" class="nav-cta">
+        GitHub
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 12L12 4M12 4H6M12 4V10"/>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        29 production-ready examples
+      </div>
+      <h1>Stack-based programming<br><span>for the modern age</span></h1>
+      <p class="hero-sub">
+        A curated collection of practical applications. Agentic AI, shell-out patterns,
+        HTML generation, SQLite integration. No dependencies. Pure Forth.
+      </p>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">29</div>
+          <div class="stat-label">Examples</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">8</div>
+          <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Dependencies</div>
+        </div>
+      </div>
+      <div class="hero-code">
+        <code>fifth examples/&lt;name&gt;/main.fs</code>
+        <span class="hero-code-comment">— run any example</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="examples">
+    <div class="container">
+
+      <!-- Agentic AI (Featured - First) -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Agentic AI</h2>
+          <span class="section-count">07</span>
+        </div>
+        <div class="grid">
+          <a href="../agent-loop/index.html" class="card card-featured">
+            <div class="card-badge">Featured</div>
+            <h3 class="card-title">
+              Agent Loop
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">ReAct pattern agent framework. Think → Act → Observe → Repeat. Tool dispatch, self-correction, memory.</p>
+          </a>
+          <a href="../codebase-indexer/index.html" class="card">
+            <h3 class="card-title">
+              Codebase Indexer
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Semantic code search via embeddings. Vector similarity finds what grep can't.</p>
+          </a>
+          <a href="../training-data-gen/index.html" class="card">
+            <h3 class="card-title">
+              Training Data Gen
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Extract fine-tuning data from codebases. Docstrings, commits, tests. Dedup and quality filters.</p>
+          </a>
+          <a href="../app-from-spec/index.html" class="card">
+            <h3 class="card-title">
+              App from Spec
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Multi-stage app generation from YAML specs. Architecture → Schema → API → Frontend → Tests.</p>
+          </a>
+          <a href="../eval-harness/index.html" class="card">
+            <h3 class="card-title">
+              Eval Harness
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Benchmark LLM code generation. Pass@k metrics, A/B testing, cost tracking.</p>
+          </a>
+          <a href="../context-manager/index.html" class="card">
+            <h3 class="card-title">
+              Context Manager
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Intelligent context window management. Hierarchical memory, summarization, retrieval.</p>
+          </a>
+          <a href="../agentic-coder/index.html" class="card">
+            <h3 class="card-title">
+              Agentic Coder
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Full AI coding assistant. LLM APIs, tool execution, context management, task planning.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Web & Reports -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Web & Report Generation</h2>
+          <span class="section-count">03</span>
+        </div>
+        <div class="grid">
+          <a href="../static-site-generator/index.html" class="card">
+            <h3 class="card-title">
+              Static Site Generator
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Build blogs and documentation sites from markdown. Shell out to pandoc, output static HTML.</p>
+          </a>
+          <a href="../dashboard-generator/index.html" class="card">
+            <h3 class="card-title">
+              Dashboard Generator
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Pull metrics from APIs and databases. Render self-contained HTML dashboards.</p>
+          </a>
+          <a href="../invoice-system/index.html" class="card">
+            <h3 class="card-title">
+              Invoice System
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Generate PDF invoices from database records. Print-optimized CSS, wkhtmltopdf integration.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Data Processing -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Data Processing</h2>
+          <span class="section-count">03</span>
+        </div>
+        <div class="grid">
+          <a href="../log-analyzer/index.html" class="card">
+            <h3 class="card-title">
+              Log Analyzer
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Parse and summarize application logs. Pattern matching, SQLite aggregation, HTML reports.</p>
+          </a>
+          <a href="../csv-transformer/index.html" class="card">
+            <h3 class="card-title">
+              CSV Transformer
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Convert between data formats. Stack operations for field manipulation, SQL joins.</p>
+          </a>
+          <a href="../db-migration/index.html" class="card">
+            <h3 class="card-title">
+              Database Migration
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Schema versioning and data migration. Track applied migrations, generate rollbacks.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- System Administration -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">System Administration</h2>
+          <span class="section-count">03</span>
+        </div>
+        <div class="grid">
+          <a href="../config-generator/index.html" class="card">
+            <h3 class="card-title">
+              Config Generator
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Generate nginx, Apache, and systemd configs. Composable templates, no engine needed.</p>
+          </a>
+          <a href="../server-health/index.html" class="card">
+            <h3 class="card-title">
+              Server Health
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Aggregate system metrics into status pages. Shell out to df, free, uptime.</p>
+          </a>
+          <a href="../deployment-script/index.html" class="card">
+            <h3 class="card-title">
+              Deployment Script
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Orchestrate multi-step deployments. Health checks, rollback on failure.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Developer Tools -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Developer Tools</h2>
+          <span class="section-count">04</span>
+        </div>
+        <div class="grid">
+          <a href="../code-generator/index.html" class="card">
+            <h3 class="card-title">
+              Code Generator
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Generate boilerplate from specifications. Models, routes, tests from JSON/YAML.</p>
+          </a>
+          <a href="../doc-generator/index.html" class="card">
+            <h3 class="card-title">
+              Doc Generator
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Extract documentation from source. Cross-reference definitions, build indexes.</p>
+          </a>
+          <a href="../project-scaffolder/index.html" class="card">
+            <h3 class="card-title">
+              Project Scaffolder
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Create project structures from templates. Git init, dependency installation.</p>
+          </a>
+          <a href="../css-framework/index.html" class="card">
+            <h3 class="card-title">
+              CSS Framework
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Modular CSS generation. Design tokens, utility classes, component styles.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Domain-Specific -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Domain-Specific</h2>
+          <span class="section-count">04</span>
+        </div>
+        <div class="grid">
+          <a href="../financial-calculator/index.html" class="card">
+            <h3 class="card-title">
+              Financial Calculator
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">RPN calculators and modeling. Compound interest, amortization schedules.</p>
+          </a>
+          <a href="../quiz-system/index.html" class="card">
+            <h3 class="card-title">
+              Quiz System
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Generate and score assessments. HTML forms, SQLite storage, reporting.</p>
+          </a>
+          <a href="../recipe-manager/index.html" class="card">
+            <h3 class="card-title">
+              Recipe Manager
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Store and scale recipes. Ratio calculations, shopping lists, inventory.</p>
+          </a>
+          <a href="../bookmark-manager/index.html" class="card">
+            <h3 class="card-title">
+              Bookmark Manager
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Personal knowledge management. Full-text search via FTS5, tag organization.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Embedded & Constrained -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Embedded & Constrained</h2>
+          <span class="section-count">02</span>
+        </div>
+        <div class="grid">
+          <a href="../iot-scripting/index.html" class="card">
+            <h3 class="card-title">
+              IoT Scripting
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Lightweight automation for constrained devices. Sensors, thresholds, actuators.</p>
+          </a>
+          <a href="../kiosk-display/index.html" class="card">
+            <h3 class="card-title">
+              Kiosk Display
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Drive information displays. Full-screen HTML, scheduled refresh.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Integration Patterns -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Integration Patterns</h2>
+          <span class="section-count">03</span>
+        </div>
+        <div class="grid">
+          <a href="../webhook-handler/index.html" class="card">
+            <h3 class="card-title">
+              Webhook Handler
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Process incoming webhooks. JSON parsing via jq, validation, storage.</p>
+          </a>
+          <a href="../cron-orchestrator/index.html" class="card">
+            <h3 class="card-title">
+              Cron Orchestrator
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Manage scheduled tasks. Job definitions, execution tracking, dependencies.</p>
+          </a>
+          <a href="../api-client/index.html" class="card">
+            <h3 class="card-title">
+              API Client
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 12L12 4M12 4H6M12 4V10"/>
+              </svg>
+            </h3>
+            <p class="card-desc">Wrap REST APIs in Forth words. Curl requests, jq parsing, SQLite caching.</p>
+          </a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-mark">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 8L16 24L26 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 8H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+            </svg>
+          </div>
+          <span class="logo-type">Fifth</span>
+        </div>
+      </div>
+      <p class="footer-tagline">Stack-based programming for the modern age</p>
+      <div class="footer-links">
+        <a href="../../README.md" class="footer-link">Documentation</a>
+        <a href="../USE-CASES.md" class="footer-link">Use Cases</a>
+        <a href="https://github.com" class="footer-link">GitHub</a>
+        <a href="../../CLAUDE.md" class="footer-link">Contributing</a>
+      </div>
+      <p class="footer-copy">Built with Fifth. No dependencies.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll progress indicator
+    const progress = document.querySelector('.scroll-progress');
+    window.addEventListener('scroll', () => {
+      const scrolled = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const percent = max > 0 ? scrolled / max : 0;
+      progress.style.transform = `scaleX(${percent})`;
+    }, { passive: true });
+
+    // Stagger card animations on scroll
+    const cards = document.querySelectorAll('.card');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationDelay = `${index * 0.05}s`;
+          entry.target.style.animationPlayState = 'running';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    cards.forEach(card => {
+      card.style.animationPlayState = 'paused';
+      observer.observe(card);
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+
+    // Keyboard navigation enhancement
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+        const isInput = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+        if (!isInput) {
+          e.preventDefault();
+          document.querySelector('#examples').scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

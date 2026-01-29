@@ -1,0 +1,148 @@
+# Fifth Context for Grok-2 (Real-Time Capable)
+
+## What is Fifth?
+
+Fifth is a modern Forth implementation. Stack-based language, compiles to native code, no external dependencies except sqlite3 for database features.
+
+**Use cases**: HTML dashboards, data processing tools, static site generation, CLI utilities.
+
+## The One Rule That Breaks Everything
+
+**WHITESPACE IS THE ONLY DELIMITER**
+
+```forth
+</div>nl    -- WRONG: undefined word "</div>nl"
+</div> nl   -- RIGHT: two words "</div>" and "nl"
+```
+
+This isn't a quirk. This is how Forth works. Every. Single. Time.
+
+## Memory Model: Why Your Code Crashes
+
+Fifth has NO dynamic allocation. The `s+` word and `allocate`/`free` will corrupt memory.
+
+**The correct pattern:**
+```forth
+str-reset
+s" hello " str+
+s" world" str+
+str$  ( -- addr u )
+```
+
+Two buffers exist:
+- Primary: `str-reset`, `str+`, `str$`
+- Secondary: `str2-reset`, `str2+`, `str2$`
+
+`html-escape` uses secondary, so you can safely escape inside a primary buffer build.
+
+## Stack Basics
+
+Strings are (address, length) pairs:
+```forth
+s" test"     ( -- addr 4 )
+2dup         ( addr 4 -- addr 4 addr 4 )
+type         ( addr 4 addr 4 -- addr 4 )  prints "test"
+2drop        ( addr 4 -- )
+```
+
+Key operations:
+- `2dup`, `2drop`, `2swap` - pair operations
+- `2>r`, `2r>` - save/restore pairs to return stack
+- `-rot` - rotate three items (NOT the same as `swap`!)
+
+## HTML Generation
+
+```forth
+\ Setup output file
+s" /tmp/page.html" w/o create-file throw html>file
+
+\ Build document
+s" My Page" html-head
+  <style> s" body{font-family:system-ui}" text </style>
+  ui-css
+html-body
+  <div> s" class" s" container" attr>
+    <h1> s" Hello, World" text </h1>
+  </div>
+ui-js
+html-end
+
+\ Cleanup
+html-fid @ close-file throw
+```
+
+## SQL Integration
+
+Shell-out to sqlite3, results are pipe-delimited:
+
+```forth
+s" data.db" s" SELECT name, score FROM players ORDER BY score DESC" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if
+    2dup 0 sql-field type s"  - " type
+    2dup 1 sql-field type cr
+    2drop
+  else 2drop then
+repeat 2drop
+sql-close
+```
+
+**Warning**: No single quotes in SQL strings. The shell command is wrapped in single quotes, so `WHERE name='x'` breaks. Use numeric comparisons or SQL concatenation.
+
+## Word Definitions
+
+```forth
+: word-name ( inputs -- outputs )
+  \ stack comment is REQUIRED
+  body ;
+
+\ Example: render a user card
+: user-card ( name-addr name-u score -- )
+  <div> s" class" s" card" attr>
+    <h3> rot rot text </h3>  \ name
+    <p> . s"  points" type </p>  \ score
+  </div> ;
+```
+
+## Quick Reference
+
+| Word | Effect | Notes |
+|------|--------|-------|
+| `<tag>` | Emit open tag | Partial, needs `>` or `attr>` |
+| `</tag>` | Emit close tag | Complete with newline |
+| `attr>` | Add attribute and close | `( name-a name-u val-a val-u -- )` |
+| `text` | Escaped output | ALWAYS use for user data |
+| `raw` | Unescaped output | NEVER use for user data |
+| `str-reset` | Clear primary buffer | |
+| `str+` | Append to buffer | |
+| `str$` | Extract from buffer | Returns ( addr u ) |
+| `sql-exec` | Run query | ( db-a db-u sql-a sql-u -- ) |
+| `sql-field` | Get column | ( row-a row-u n -- field-a field-u ) |
+
+## Error Translation
+
+| You see | It means | Fix |
+|---------|----------|-----|
+| "Undefined word: X" | Missing space or typo | Check tokenization |
+| "Invalid memory address" | Stack imbalance | Add `.s` to debug |
+| "Stack underflow" | Not enough inputs | Check word signatures |
+| Garbled output | Buffer collision | Separate buffer usage |
+
+## Loading Libraries
+
+```forth
+require ~/.fifth/lib/pkg.fs   \ Bootstrap package system
+use lib:core.fs               \ Load standard libs (str, html, sql)
+```
+
+Libraries live in `~/.fifth/lib/`, packages in `~/.fifth/packages/`.
+
+## Real-Time Integration Notes
+
+Fifth generates static HTML files to `/tmp/` by convention. For real-time dashboards:
+1. Generate HTML to a known path
+2. Use browser auto-refresh or file watcher
+3. Re-run Fifth script on data change
+
+The shell-out pattern means SQL queries hit the database directly - no caching layer unless you build one.

@@ -1,0 +1,126 @@
+# Fifth Context for o3 (Extended Thinking, Novel Algorithm Design)
+
+## System Architecture
+
+Fifth is a Forth dialect optimized for:
+- HTML generation (static sites, dashboards)
+- SQLite data processing (shell-out pattern)
+- Package management (require/use system)
+
+**Design Philosophy**: Composition over complexity. Small words that combine.
+
+## Memory Model (Critical for Algorithm Design)
+
+```
++-----------------+
+|  Stack (LIFO)   |  <- Parameters, return values
++-----------------+
+|  Return Stack   |  <- Control flow, temporary storage (2>r/2r>)
++-----------------+
+|  str-buf (4KB)  |  <- Primary string building
++-----------------+
+|  str2-buf (4KB) |  <- Secondary (html-escape uses this)
++-----------------+
+|  Dictionary     |  <- Word definitions
++-----------------+
+```
+
+**Constraint**: No heap. All string operations must use static buffers.
+**Implication**: Algorithms must be streaming or bounded-memory.
+
+## Algorithmic Patterns in Fifth
+
+### Pattern 1: Accumulator via Buffer
+
+```forth
+: join-with ( sep-addr sep-u -- result-addr result-u )
+  \ Join stack strings with separator
+  str-reset
+  begin
+    depth 2 > while      \ while more than separator on stack
+    str+ 2dup str+ drop  \ add string, add separator
+  repeat
+  2drop                  \ drop separator
+  str$ ;                 \ return accumulated result
+```
+
+### Pattern 2: SQL Result Processing (Streaming)
+
+```forth
+: process-rows ( db-addr db-u sql-addr sql-u -- )
+  sql-exec sql-open
+  begin sql-row? while
+    2dup                 \ copy row string
+    process-single-row   \ your algorithm here
+    2drop                \ discard row string
+  repeat 2drop
+  sql-close ;
+```
+
+### Pattern 3: HTML Tree Building (Continuation Style)
+
+```forth
+: with-container ( xt -- )  \ xt = execution token
+  <div> s" class" s" container" attr>
+    execute              \ run the passed word
+  </div> ;
+
+' render-content with-container
+```
+
+## Novel Algorithm Design Considerations
+
+When designing new algorithms for Fifth:
+
+1. **Bounded Iteration**: No recursion without explicit depth limits
+2. **Streaming Output**: Generate HTML/output incrementally, don't accumulate
+3. **Stack as State**: Use stack depth as implicit loop counter when appropriate
+4. **Return Stack for Pairs**: `2>r ... 2r>` preserves string pairs across operations
+
+## Tokenization Invariant
+
+The parser splits on ASCII whitespace only. This affects algorithm expression:
+
+```forth
+\ WRONG - attempts to define word with newline in name
+: multi
+line ( -- ) ;
+
+\ RIGHT - all on one line or use \ continuation
+: multiline ( -- )
+  do-thing
+  do-other-thing ;
+```
+
+## Complexity Analysis Framework
+
+For Fifth algorithms, analyze:
+- **Stack depth**: Maximum items on stack (bounded by implementation)
+- **Buffer usage**: Primary vs secondary, potential conflicts
+- **Shell-out cost**: SQL operations are O(exec) overhead
+- **String copying**: Each `str+` copies, avoid in tight loops
+
+## Design Challenge Template
+
+When asked to design a Fifth algorithm:
+
+1. **Identify memory pattern**: Streaming? Bounded accumulation? Multi-pass?
+2. **Choose buffer strategy**: Primary only? Need secondary? External file?
+3. **Define stack protocol**: Clear `( inputs -- outputs )` contract
+4. **Handle edge cases**: Empty input? Maximum size? Shell failures?
+5. **Compose from primitives**: Build from existing words, don't monolith
+
+## Advanced: Metaprogramming
+
+Fifth supports runtime word creation:
+
+```forth
+: make-getter ( offset -- )
+  create ,              \ store offset in word body
+  does> @ swap + @ ;    \ runtime: fetch from structure
+
+0 make-getter get-first
+4 make-getter get-second
+```
+
+This enables domain-specific abstractions while maintaining stack discipline.

@@ -1,0 +1,212 @@
+# Fifth Context for Command R+ (RAG-Optimized)
+
+## Document: Fifth Language Overview
+
+Fifth is a practical Forth dialect for building HTML dashboards and data processing tools.
+
+**Core characteristics:**
+- Stack-based execution (all operations manipulate a LIFO stack)
+- Whitespace-only tokenization (spaces, tabs, newlines separate words)
+- Static memory model (no dynamic allocation, use static buffers)
+- Shell-out pattern (external tools like sqlite3 for database operations)
+
+---
+
+## Document: Critical Syntax Rules
+
+### Rule: Whitespace Tokenization
+
+The parser splits input on whitespace characters only. No other delimiters exist.
+
+**Correct usage:**
+```forth
+</div> nl    \ Two separate words: close-tag and newline
+s" hello"   \ Two tokens: s" and hello"
+```
+
+**Incorrect usage:**
+```forth
+</div>nl     \ Single undefined word (parser sees one token)
+s"hello"     \ Undefined word s"hello"
+```
+
+### Rule: String Representation
+
+Strings occupy TWO stack positions: (address, length).
+
+**Stack effect of `s" hello"`:**
+```
+Before: ( )
+After:  ( addr 5 )
+```
+
+**Pair operations:**
+- `2dup` - duplicate string pair
+- `2drop` - discard string pair
+- `2swap` - exchange two string pairs
+
+---
+
+## Document: Memory Management
+
+### Static Buffer System
+
+Fifth provides two independent string buffers. Dynamic allocation (`allocate`, `free`, `s+`) is forbidden.
+
+**Primary buffer operations:**
+```forth
+str-reset    ( -- )          \ Clear buffer
+str+         ( addr u -- )   \ Append to buffer
+str$         ( -- addr u )   \ Extract result
+```
+
+**Secondary buffer operations:**
+```forth
+str2-reset   ( -- )
+str2+        ( addr u -- )
+str2$        ( -- addr u )
+```
+
+**Usage pattern:**
+```forth
+str-reset
+s" Hello, " str+
+s" World" str+
+str$           ( -- addr 12 )
+```
+
+**Important:** `html-escape` uses the secondary buffer internally, allowing safe nesting with primary buffer operations.
+
+---
+
+## Document: HTML Generation
+
+### File Setup
+
+```forth
+s" /tmp/output.html" w/o create-file throw html>file
+```
+
+### Document Structure
+
+```forth
+s" Page Title" html-head    \ Opens DOCTYPE, html, head, title
+  <style>
+    s" body { margin: 20px; }" text
+  </style>
+  ui-css                     \ Standard component styles
+html-body                    \ Closes head, opens body
+
+  \ Page content here
+
+ui-js                        \ Standard JavaScript
+html-end                     \ Closes body, html
+html-fid @ close-file throw  \ Flush and close
+```
+
+### Tag Operations
+
+| Word | Stack Effect | Output |
+|------|--------------|--------|
+| `<div>` | ( -- ) | `<div` |
+| `</div>` | ( -- ) | `</div>` + newline |
+| `attr>` | ( name-addr name-u val-addr val-u -- ) | ` name="val">` |
+| `text` | ( addr u -- ) | HTML-escaped content |
+| `raw` | ( addr u -- ) | Unescaped content (dangerous) |
+
+**Example with attributes:**
+```forth
+<div> s" class" s" container" attr>
+  s" Content" text
+</div>
+```
+Output: `<div class="container">Content</div>`
+
+---
+
+## Document: SQL Integration
+
+### Query Execution Pattern
+
+```forth
+s" database.db" s" SELECT col1, col2 FROM table" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if
+    2dup 0 sql-field type    \ First column
+    2dup 1 sql-field type    \ Second column
+    2drop                     \ Discard row string
+  else 2drop then
+repeat 2drop
+sql-close
+```
+
+### Key Points
+
+- Results are pipe-delimited strings
+- `sql-field` extracts by 0-based index
+- Avoid single quotes in SQL (shell quoting conflict)
+- Always `sql-close` to clean up
+
+---
+
+## Document: Word Definition
+
+### Syntax
+
+```forth
+: word-name ( stack-before -- stack-after )
+  body
+  ;
+```
+
+### Example
+
+```forth
+: show-user ( name-addr name-u email-addr email-u -- )
+  2swap                      \ Put name on top
+  <tr>
+    <td> text </td>          \ Name
+    <td> text </td>          \ Email
+  </tr> ;
+```
+
+---
+
+## Document: Error Diagnosis
+
+| Symptom | Probable Cause | Solution |
+|---------|----------------|----------|
+| "Undefined word: </div>nl" | Missing whitespace | Insert space: `</div> nl` |
+| "Invalid memory address" | Stack imbalance | Add `.s` calls to trace |
+| Memory corruption | Using `s+` | Use buffer pattern |
+| Empty file output | File not closed | Call `close-file` |
+| SQL syntax error | Nested single quotes | Use numeric comparisons |
+
+---
+
+## Document: Library System
+
+### Loading Libraries
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs    \ Loads str, html, sql, pkg
+```
+
+### Library Dependencies
+
+```
+str.fs (standalone)
+  |
+  +-- html.fs
+  |     +-- template.fs
+  |           +-- ui.fs
+  +-- sql.fs
+  +-- pkg.fs
+```
+
+### Standard Library Locations
+
+- Core libraries: `~/.fifth/lib/`
+- Installed packages: `~/.fifth/packages/`

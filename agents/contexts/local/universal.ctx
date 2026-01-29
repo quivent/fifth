@@ -1,0 +1,43 @@
+# Fifth Context (Universal)
+
+Forth dialect with HTML/SQL libs. Stack-based, static buffers.
+
+## Must Know
+
+1. **Words are space-separated**: `</div> nl` not `</div>nl`
+2. **Strings = ( addr u )**: Use `2dup 2drop 2swap`
+3. **No s+**: Use `str-reset s" a" str+ s" b" str+ str$`
+4. **Stack comments**: `( inputs -- outputs )`
+5. **Escape quotes**: `s\" with \"quotes\""`
+6. **No single-quoted SQL**: Conflicts with shell
+
+## HTML
+```forth
+s" Title" html-head html-body
+s" content" h1.      \ <h1>content</h1>
+s" class" <div.>     \ <div class='class'>
+s" text" text        \ escaped
+s" <b>x</b>" raw     \ unescaped (danger)
+</div> nl
+html-end
+```
+
+## SQL
+```forth
+s" db" s" SELECT a,b FROM t" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if 2dup 0 sql-field type 2drop else 2drop then
+repeat 2drop sql-close
+```
+
+## Buffers
+- Primary: `str-reset str+ str$ str-char`
+- Secondary: `str2-reset str2+ str2$` (for html-escape)
+
+## Stack
+`dup drop swap over rot -rot`
+`2dup 2drop 2swap 2>r 2r>`
+
+## Run
+`./fifth file.fs` or `./fifth -e "code"`

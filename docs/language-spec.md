@@ -1,4 +1,4 @@
-# FIFTH.md -- The Fifth Language Specification
+# The Fifth Language Specification
 
 **Version 0.1.0**
 

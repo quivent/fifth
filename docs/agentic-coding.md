@@ -1,4 +1,4 @@
-# Agentic Coding: Why Forth is Ideal for AI-Assisted Development
+# Agentic Coding: Why Fifth is Ideal for AI-Assisted Development
 
 An information-theoretic analysis of language choice for LLM-driven programming.
 
@@ -76,16 +76,18 @@ Forth interpretation is <2% of any real workflow. The bottleneck is always I/O.
 
 ### Native I/O: No Fork, No Subprocess
 
-Fifth doesn't just shell out — it talks directly to the OS. The `open-path` primitive calls macOS LaunchServices (`LSOpenCFURLRef`) from C, bypassing `fork()` and `exec()` entirely:
+Fifth doesn't just shell out — it talks directly to the OS. The `open-path` primitive calls macOS LaunchServices (`LSOpenCFURLRef`) from C, bypassing `fork()` and `exec()` entirely.
 
-```
-system("open file"):  182ms   fork + exec + /usr/bin/open + LaunchServices
-open-path (native):    56ms   C → LaunchServices directly
+Measured on M-series Mac, opening a file in the default browser:
 
-Saved:                126ms   No process spawning
-```
+| Method | Time | What It Does |
+|--------|------|-------------|
+| **Fifth `open-path`** | **48ms** | C → `LSOpenCFURLRef` → LaunchServices → Browser |
+| Fifth `system("open")` | 63ms | C → `fork` → `exec` → `/usr/bin/open` → LaunchServices → Browser |
+| Python `subprocess` | 80ms | Python → `fork` → `exec` → `/usr/bin/open` → LaunchServices → Browser |
+| Node.js `execSync` | 102ms | V8 → libuv → `fork` → `exec` → `/usr/bin/open` → LaunchServices → Browser |
 
-A 57KB Forth binary that calls the same OS API as a native Cocoa app. No Python runtime. No Node.js. No JVM. One function pointer from the kernel.
+A 57KB Forth binary that calls the same OS API as a native Cocoa app. No Python runtime. No Node.js. No JVM.
 
 ```forth
 \ Open anything — files, URLs, apps
@@ -331,6 +333,8 @@ AI coding assistants should:
 Fifth is accidentally well-positioned for the AI era. The same constraints that made Forth viable on 4KB machines - small vocabulary, explicit state, compositional semantics - make it tractable for language models.
 
 The future may favor languages designed for machine verifiability over human ergonomics.
+
+→ *See [The Convergence: Forth, Stack Silicon, and the Agentic Era](stack-silicon.md) for where this leads.*
 
 ---
 

@@ -1,0 +1,153 @@
+# Fifth Context for Gemini Ultra (Full Reasoning)
+
+## Language Overview
+
+Fifth is a modern Forth implementation for practical applications:
+- HTML generation for dashboards and static sites
+- SQLite integration via shell-out pattern
+- Package system with require/use semantics
+
+**Key Insight**: Forth's stack discipline enables reasoning about data flow with mathematical precision. Every word has a clear contract.
+
+## Fundamental Principles
+
+### 1. Whitespace Tokenization
+
+The parser recognizes ONLY whitespace as token separators:
+
+```forth
+\ These are different:
+</div>nl     \ ONE token (undefined word error)
+</div> nl    \ TWO tokens (close tag, then newline)
+```
+
+This applies universally. No exceptions.
+
+### 2. Static Buffer Memory Model
+
+Fifth provides two independent string buffers:
+
+| Buffer | Build | Append | Extract | Size |
+|--------|-------|--------|---------|------|
+| Primary | `str-reset` | `str+` | `str$` | 4KB |
+| Secondary | `str2-reset` | `str2+` | `str2$` | 4KB |
+
+**Usage Rule**: `html-escape` uses secondary buffer internally. This means you can safely build a string in primary, escape content, and continue building.
+
+**Anti-pattern**: `s+` (dynamic concatenation) causes memory corruption. Always use buffer pattern.
+
+### 3. Stack Pairs for Strings
+
+Strings are represented as (address, length) pairs:
+
+```forth
+s" hello"    \ pushes: ( addr 5 )
+2dup         \ copies pair: ( addr 5 addr 5 )
+type         \ consumes pair, prints string
+```
+
+Pair operations: `2dup`, `2drop`, `2swap`, `2over`, `2>r`, `2r>`
+
+## Comprehensive Examples
+
+### HTML Dashboard
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs
+
+s" /tmp/dashboard.html" w/o create-file throw html>file
+
+s" Metrics Dashboard" html-head
+  <style>
+    s" .card{padding:1rem;border:1px solid #ddd;border-radius:4px}" text
+  </style>
+  ui-css
+html-body
+
+<div> s" class" s" container" attr>
+  <h1> s" System Status" text </h1>
+
+  <div> s" class" s" grid-auto" attr>
+    s" 42" s" Active Users" stat-card
+    s" 99.9%" s" Uptime" stat-card
+    s" 1.2ms" s" Response Time" stat-card
+  </div>
+</div>
+
+ui-js
+html-end
+html-fid @ close-file throw
+```
+
+### SQL Data Processing
+
+```forth
+: show-users ( -- )
+  s" users.db" s" SELECT name, email FROM users ORDER BY name" sql-exec
+  sql-open
+  <table>
+    <tr> <th> s" Name" text </th> <th> s" Email" text </th> </tr>
+    begin sql-row? while
+      dup 0> if
+        <tr>
+          <td> 2dup 0 sql-field text </td>
+          <td> 2dup 1 sql-field text </td>
+        </tr>
+        2drop
+      else 2drop then
+    repeat 2drop
+  </table>
+  sql-close ;
+```
+
+### Custom Word Definition
+
+```forth
+: badge ( class-addr class-u text-addr text-u -- )
+  \ Render a styled badge
+  ( class-addr class-u text-addr text-u )
+  2swap                          \ ( text-addr text-u class-addr class-u )
+  <span> s" class" 2swap attr>   \ ( text-addr text-u )
+    text                         \ ( )
+  </span> ;
+
+\ Usage:
+s" badge-success" s" Active" badge
+```
+
+## Error Diagnosis
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| "Invalid memory address" | Stack imbalance | Add `.s` to trace stack state |
+| "Undefined word: </div>nl" | Missing whitespace | Add space: `</div> nl` |
+| Memory corruption | Using `s+` | Switch to `str-reset str+ str$` |
+| Empty output | File not flushed | Ensure `close-file` called |
+| SQL quoting error | Single quotes nested | Use numeric comparisons or double-quote identifiers |
+
+## Library Dependencies
+
+```
+str.fs          (standalone - string buffers)
+    |
+    +-- html.fs (HTML generation)
+    |       |
+    |       +-- template.fs (templating)
+    |               |
+    |               +-- ui.fs (components)
+    |
+    +-- sql.fs (SQLite interface)
+    |
+    +-- pkg.fs (package management)
+
+core.fs loads: str.fs, html.fs, sql.fs, pkg.fs
+```
+
+## Best Practices
+
+1. **Stack comments on every word**: `( inputs -- outputs )`
+2. **Small, composable words**: If it's more than 10 lines, split it
+3. **Document buffer usage**: Note if a word uses primary or secondary buffer
+4. **Escape user input**: Always use `text` (escaping), never `raw` for untrusted data
+5. **Close files explicitly**: `html-fid @ close-file throw`

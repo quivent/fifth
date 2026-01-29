@@ -1,0 +1,36 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        {"name": "id", "type": "integer", "primary": true},
+        {"name": "email", "type": "string", "unique": true},
+        {"name": "name", "type": "string"},
+        {"name": "createdAt", "type": "timestamp"},
+        {"name": "updatedAt", "type": "timestamp"}
+      ]
+    },
+    {
+      "name": "Post",
+      "fields": [
+        {"name": "id", "type": "integer", "primary": true},
+        {"name": "title", "type": "string"},
+        {"name": "content", "type": "text"},
+        {"name": "authorId", "type": "integer", "references": "User.id"},
+        {"name": "published", "type": "boolean", "default": false},
+        {"name": "createdAt", "type": "timestamp"},
+        {"name": "updatedAt", "type": "timestamp"}
+      ]
+    },
+    {
+      "name": "Comment",
+      "fields": [
+        {"name": "id", "type": "integer", "primary": true},
+        {"name": "content", "type": "text"},
+        {"name": "postId", "type": "integer", "references": "Post.id"},
+        {"name": "authorId", "type": "integer", "references": "User.id"},
+        {"name": "createdAt", "type": "timestamp"}
+      ]
+    }
+  ]
+}

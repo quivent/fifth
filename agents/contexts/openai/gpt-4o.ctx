@@ -1,0 +1,78 @@
+# Fifth Context for GPT-4o (128K context, multimodal)
+
+## What You're Working With
+
+Fifth = modern Forth. Stack-based, whitespace-tokenized, static buffers only.
+
+**Visual Output**: Fifth generates HTML files. You can discuss layout, CSS styling, and visual structure. Output files go to `/tmp/` and open in browser.
+
+## Core Rules
+
+1. **WHITESPACE MATTERS**: `</div>nl` = undefined. `</div> nl` = two words.
+2. **NO DYNAMIC STRINGS**: Use `str-reset str+ str$` pattern, never `s+` or `allocate`
+3. **STACK COMMENTS REQUIRED**: `( inputs -- outputs )` on every word
+
+## Buffer System
+
+```forth
+\ Primary buffer
+str-reset s" hello" str+ s" world" str+ str$ ( -- addr u )
+
+\ Secondary buffer (used by html-escape internally)
+str2-reset str2+ str2$
+```
+
+Never nest same-buffer operations.
+
+## Stack Operations Quick Reference
+
+| Op | Stack Effect | Use |
+|----|--------------|-----|
+| `2dup` | ( a u -- a u a u ) | Copy string pair |
+| `2drop` | ( a u -- ) | Discard string pair |
+| `2swap` | ( a1 u1 a2 u2 -- a2 u2 a1 u1 ) | Exchange pairs |
+| `2>r 2r>` | Save/restore to return stack | Preserve across calls |
+
+## HTML Generation Pattern
+
+```forth
+s" /tmp/out.html" w/o create-file throw html>file
+s" Title" html-head
+  <style> s" body{margin:20px}" text </style>
+html-body
+  <div> s" class" s" container" attr>
+    s" Content" text
+  </div>
+html-end
+html-fid @ close-file throw
+```
+
+## SQL Pattern (Shell-out, Pipe-Delimited)
+
+```forth
+s" db.db" s" SELECT a,b FROM t" sql-exec
+sql-open
+begin sql-row? while
+  2dup 0 sql-field type  \ column 0
+  2dup 1 sql-field type  \ column 1
+  2drop
+repeat 2drop
+sql-close
+```
+
+**WARNING**: No single quotes in SQL strings (shell quoting conflict).
+
+## Common Mistakes to Catch
+
+- Missing space before `nl`, `cr`, closing tags
+- Using `s+` (crashes) instead of buffer pattern
+- Stack imbalance causing "Invalid memory address"
+- Forgetting `2drop` after processing strings
+
+## When Discussing Visual Output
+
+You can reference what the HTML will look like. Fifth's ui.fs provides:
+- `stat-card` - Metric display boxes
+- `tabs`/`tab-content` - Tabbed interfaces
+- `grid-auto` - CSS grid layouts
+- `bg-primary`, `text-muted` - Utility classes

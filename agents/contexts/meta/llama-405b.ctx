@@ -1,0 +1,191 @@
+# Fifth Context for Llama 405B (Full Local Model)
+
+## System Description
+
+Fifth is a Forth-family language for practical development:
+- C interpreter (`engine/`) for runtime
+- Rust compiler (`compiler/`) for native code generation
+- Standard library (`~/.fifth/lib/`) for common operations
+- Package system (`~/.fifth/packages/`) for extensions
+
+## Core Language Rules
+
+### Rule 1: Whitespace Tokenization
+
+```forth
+\ Forth splits on whitespace ONLY
+\ These are completely different:
+
+</div>nl     \ WRONG: one undefined token
+</div> nl    \ RIGHT: two tokens
+
+s"hello"     \ WRONG: s"hello" is undefined
+s" hello"    \ RIGHT: s" followed by string
+```
+
+### Rule 2: Stack-Based Execution
+
+Everything operates on a stack. Strings are (address, length) pairs:
+
+```forth
+s" hello"   \ Stack: ( addr 5 )
+s" world"   \ Stack: ( addr1 5 addr2 5 )
+2swap       \ Stack: ( addr2 5 addr1 5 )
+type        \ Prints "hello", Stack: ( addr2 5 )
+type        \ Prints "world", Stack: ( )
+```
+
+### Rule 3: Static Buffers Only
+
+NO dynamic allocation. Use the buffer pattern:
+
+```forth
+\ WRONG - causes crashes
+s" hello" s" world" s+
+
+\ RIGHT - buffer accumulation
+str-reset
+s" hello" str+
+s" world" str+
+str$  ( -- addr u )
+```
+
+Two buffers available:
+- Primary: `str-reset`, `str+`, `str$`
+- Secondary: `str2-reset`, `str2+`, `str2$`
+
+## Standard Patterns
+
+### Pattern: HTML File Output
+
+```forth
+\ Open file for writing
+s" /tmp/page.html" w/o create-file throw html>file
+
+\ Build document
+s" Page Title" html-head
+  <style> s" body { font-family: sans-serif; }" text </style>
+  ui-css
+html-body
+  <main>
+    <h1> s" Welcome" text </h1>
+    <p> s" Content here" text </p>
+  </main>
+ui-js
+html-end
+
+\ Close file
+html-fid @ close-file throw
+```
+
+### Pattern: SQL Query Processing
+
+```forth
+\ Execute query (shell-out to sqlite3)
+s" database.db" s" SELECT id, name FROM items" sql-exec
+
+\ Process results (pipe-delimited)
+sql-open
+begin sql-row? while
+  dup 0> if
+    2dup 0 sql-field type cr   \ first column
+    2dup 1 sql-field type cr   \ second column
+    2drop
+  else 2drop then
+repeat 2drop
+sql-close
+```
+
+**WARNING**: Avoid single-quoted strings in SQL. Shell uses single quotes for the whole command.
+
+### Pattern: Word Definition
+
+```forth
+\ Always include stack comment
+: greet ( name-addr name-u -- )
+  <div> s" class" s" greeting" attr>
+    s" Hello, " text
+    text  \ consumes the name parameter
+  </div> ;
+
+\ Usage
+s" Alice" greet
+```
+
+### Pattern: Conditional HTML
+
+```forth
+: status-badge ( status -- )
+  dup 0= if
+    drop s" inactive" s" Offline" badge
+  else
+    1 = if
+      s" active" s" Online" badge
+    else
+      s" warning" s" Unknown" badge
+    then
+  then ;
+```
+
+## Stack Operations Reference
+
+| Word | Effect | Description |
+|------|--------|-------------|
+| `dup` | ( a -- a a ) | Duplicate top |
+| `drop` | ( a -- ) | Discard top |
+| `swap` | ( a b -- b a ) | Exchange top two |
+| `over` | ( a b -- a b a ) | Copy second to top |
+| `rot` | ( a b c -- b c a ) | Rotate three |
+| `2dup` | ( a b -- a b a b ) | Duplicate pair |
+| `2drop` | ( a b -- ) | Discard pair |
+| `2swap` | ( a b c d -- c d a b ) | Exchange pairs |
+| `2>r` | ( a b -- ) R:( -- a b ) | Move pair to return stack |
+| `2r>` | R:( a b -- ) ( -- a b ) | Retrieve pair from return stack |
+
+## Debug Techniques
+
+```forth
+\ Print stack contents
+.s   \ Shows: <3> 42 addr 5
+
+\ Print top of stack
+. cr   \ Prints number and newline
+
+\ Trace execution
+: traced-word ( -- )
+  ." Entering" cr
+  .s
+  \ ... do work ...
+  ." Exiting" cr
+  .s ;
+```
+
+## Common Errors
+
+| Error Message | Cause | Solution |
+|---------------|-------|----------|
+| "Undefined word: </div>nl" | Missing space | `</div> nl` |
+| "Invalid memory address" | Stack underflow | Check word consumes correct items |
+| "Stack underflow" | Popping empty stack | Verify inputs available |
+| Garbled output | Buffer conflict | Use separate buffers for nested ops |
+
+## Project Structure
+
+```
+~/.fifth/
+  lib/
+    core.fs    - Loads all standard libraries
+    str.fs     - String buffer operations
+    html.fs    - HTML tag generation
+    sql.fs     - SQLite interface
+    ui.fs      - UI components
+    pkg.fs     - Package management
+  packages/
+    [name]/    - Installed packages
+```
+
+Load libraries with:
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs
+```

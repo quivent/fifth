@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Harness — Fifth</title>
+  <link rel="icon" type="image/svg+xml" href="../../brand/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>:root{--black:#0a0a0a;--gray-950:#0f0f0f;--gray-900:#171717;--gray-800:#262626;--gray-700:#404040;--gray-500:#737373;--gray-400:#a3a3a3;--gray-100:#f5f5f5;--accent:#6366f1;--font-sans:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace}*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font-sans);background:var(--black);color:var(--gray-100);line-height:1.7}.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 1.5rem;background:rgba(10,10,10,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--gray-900);display:flex;align-items:center;justify-content:space-between}.nav-brand{display:flex;align-items:center;gap:.75rem;text-decoration:none;color:var(--gray-100)}.nav-brand svg{width:24px;height:24px}.nav-brand span{font-weight:600}.nav-back{font-size:.875rem;color:var(--gray-400);text-decoration:none;display:flex;align-items:center;gap:.5rem}.nav-back:hover{color:var(--gray-100)}.container{max-width:800px;margin:0 auto;padding:8rem 1.5rem 4rem}.badge{display:inline-block;padding:.25rem .75rem;background:var(--gray-900);border:1px solid var(--gray-800);border-radius:100px;font-size:.75rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1.5rem}h1{font-size:2.5rem;font-weight:600;letter-spacing:-.03em;margin-bottom:1rem}.lead{font-size:1.125rem;color:var(--gray-400);margin-bottom:2.5rem;line-height:1.7}h2{font-size:.75rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--gray-500);margin:3rem 0 1rem;padding-bottom:.75rem;border-bottom:1px solid var(--gray-800)}h3{font-size:1rem;font-weight:600;color:var(--gray-100);margin:1.5rem 0 .75rem}p{color:var(--gray-400);margin:.75rem 0}ul,ol{margin:1rem 0;padding-left:1.5rem}li{margin:.5rem 0;color:var(--gray-400)}li strong{color:var(--gray-100)}code{font-family:var(--font-mono);font-size:.875rem}p code,li code{background:var(--gray-900);padding:.125rem .375rem;border-radius:4px;font-size:.8125rem;color:var(--gray-100)}pre{background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;padding:1.25rem;overflow-x:auto;margin:1.5rem 0;font-size:.8125rem;line-height:1.6}pre code{background:none;padding:0;color:var(--gray-100)}.run-command{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;margin:1.5rem 0}.run-command code{flex:1;color:var(--gray-100)}.run-command .hint{font-size:.75rem;color:var(--gray-500)}.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}.feature{padding:1.25rem;background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px}.feature strong{display:block;font-size:.875rem;font-weight:600;color:var(--gray-100);margin-bottom:.375rem}.feature span{font-size:.875rem;color:var(--gray-500)}.footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--gray-800);text-align:center}.footer a{color:var(--accent);text-decoration:none}.footer p{font-size:.875rem;color:var(--gray-500)}</style>
+</head>
+<body>
+  <nav class="nav"><a href="../showcase/index.html" class="nav-brand"><svg viewBox="0 0 32 32" fill="none"><path d="M6 8L16 24L26 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 8H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/></svg><span>Fifth</span></a><a href="../showcase/index.html" class="nav-back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8L10 4"/></svg>All Examples</a></nav>
+  <main class="container">
+    <div class="badge">Agentic AI</div>
+    <h1>Eval Harness</h1>
+    <p class="lead">Rigorous benchmarking for AI code generation. Measure pass@k, compare models and prompts, track costs. Replace vibes with data.</p>
+
+    <h2>Run</h2>
+    <div class="run-command"><code>fifth examples/eval-harness/main.fs run</code><span class="hint">run evaluation</span></div>
+    <div class="run-command"><code>fifth examples/eval-harness/main.fs compare prompt-a.txt prompt-b.txt</code><span class="hint">A/B test</span></div>
+
+    <h2>Why Evaluation Matters</h2>
+    <p>Vibes-based assessment is dangerous. "It seems better" is selection bias. "It passed my test" is insufficient coverage. Rigorous evaluation provides:</p>
+    <div class="feature-grid">
+      <div class="feature"><strong>Reproducibility</strong><span>Same benchmark, same results, any time</span></div>
+      <div class="feature"><strong>Comparability</strong><span>Meaningful A/B tests between models</span></div>
+      <div class="feature"><strong>Signal</strong><span>Distinguish capability from luck</span></div>
+    </div>
+
+    <h2>Core Metrics</h2>
+    <ul>
+      <li><strong>pass@k</strong> — Probability at least 1 of k samples passes. <code>pass@1</code> is hardest.</li>
+      <li><strong>Functional correctness</strong> — Syntax valid, executes, correct output, handles edges</li>
+      <li><strong>Code quality</strong> — Lines, complexity, stack depth (Forth-specific)</li>
+      <li><strong>Cost</strong> — Tokens used, USD per correct solution</li>
+    </ul>
+
+    <h2>Standard Benchmarks</h2>
+    <ul>
+      <li><strong>HumanEval</strong> — 164 hand-written Python problems</li>
+      <li><strong>MBPP</strong> — ~1000 crowd-sourced practical tasks</li>
+      <li><strong>Custom</strong> — Domain-specific, company patterns, proprietary APIs</li>
+    </ul>
+
+    <h2>A/B Testing Protocol</h2>
+    <p>Variables to test: model, temperature, system prompt, few-shot examples, prompt structure.</p>
+    <pre><code>1. Define hypothesis
+2. Fix all variables except one
+3. Run sufficient samples (min 20 problems)
+4. Calculate metrics with confidence intervals
+5. Report both positive and negative results</code></pre>
+
+    <h2>Why Fifth?</h2>
+    <ul>
+      <li><strong>Unambiguous code</strong> — No hidden imports, clear stack semantics</li>
+      <li><strong>Shell-out for APIs</strong> — curl any provider, jq for parsing</li>
+      <li><strong>SQLite for results</strong> — Query, aggregate, compare runs</li>
+      <li><strong>Sandboxed execution</strong> — Generated code runs in subprocess</li>
+    </ul>
+
+    <h2>Database Schema</h2>
+    <p>Problems in SQLite: id, name, description, signature, test_code, difficulty, category. Results track: run_id, problem_id, generated_code, passed, error_type, execution_ms, tokens.</p>
+
+    <div class="footer"><p>Part of <a href="../showcase/index.html">Fifth Examples</a></p></div>
+  </main>
+</body>
+</html>

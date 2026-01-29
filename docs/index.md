@@ -82,17 +82,14 @@ fifth -e ': hello ." Hello, Fifth!" cr ; hello'
 
 ## Native I/O — No Shell, No Fork
 
-Fifth talks directly to the OS. No subprocess spawning.
+Every scripting language opens files by spawning subprocesses. Fifth calls the OS directly.
 
 ```forth
-\ Other languages: fork → exec → /usr/bin/open → LaunchServices → browser
-s" open /tmp/page.html" system        \ 182ms
-
-\ Fifth: C → LaunchServices → browser
-s" /tmp/page.html" open-path          \  56ms — 3.2x faster
+s" open /tmp/page.html" system        \ 63ms — fork → exec → /usr/bin/open → OS
+s" /tmp/page.html" open-path          \ 48ms — direct OS call, no subprocess
 ```
 
-`open-path` calls macOS `LSOpenCFURLRef` from C. Same API that `/usr/bin/open` calls, minus 126ms of process overhead. A 57KB binary with native OS integration.
+`open-path` calls macOS `LSOpenCFURLRef` from C — the same API that `/usr/bin/open` calls internally, without the process overhead. A 57KB binary with native OS integration.
 
 ---
 

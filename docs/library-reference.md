@@ -1,4 +1,4 @@
-# LIBRARIES.md - Proposed New Libraries for Fifth
+# Proposed New Libraries for Fifth
 
 > **Design principles**: Each library does one thing well. Shell out to Unix tools
 > rather than reinvent them. Keep every library under 300 lines. Compose with

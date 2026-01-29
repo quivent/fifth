@@ -1,4 +1,4 @@
-# DEVELOPMENT.md - Contributing to Fifth
+# Contributing to Fifth
 
 How to develop, test, debug, and contribute correct Fifth code.
 

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App from Spec — Fifth</title>
+  <link rel="icon" type="image/svg+xml" href="../../brand/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>:root{--black:#0a0a0a;--gray-950:#0f0f0f;--gray-900:#171717;--gray-800:#262626;--gray-700:#404040;--gray-500:#737373;--gray-400:#a3a3a3;--gray-100:#f5f5f5;--accent:#6366f1;--font-sans:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace}*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font-sans);background:var(--black);color:var(--gray-100);line-height:1.7}.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 1.5rem;background:rgba(10,10,10,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--gray-900);display:flex;align-items:center;justify-content:space-between}.nav-brand{display:flex;align-items:center;gap:.75rem;text-decoration:none;color:var(--gray-100)}.nav-brand svg{width:24px;height:24px}.nav-brand span{font-weight:600}.nav-back{font-size:.875rem;color:var(--gray-400);text-decoration:none;display:flex;align-items:center;gap:.5rem}.nav-back:hover{color:var(--gray-100)}.container{max-width:800px;margin:0 auto;padding:8rem 1.5rem 4rem}.badge{display:inline-block;padding:.25rem .75rem;background:var(--gray-900);border:1px solid var(--gray-800);border-radius:100px;font-size:.75rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1.5rem}h1{font-size:2.5rem;font-weight:600;letter-spacing:-.03em;margin-bottom:1rem}.lead{font-size:1.125rem;color:var(--gray-400);margin-bottom:2.5rem;line-height:1.7}h2{font-size:.75rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--gray-500);margin:3rem 0 1rem;padding-bottom:.75rem;border-bottom:1px solid var(--gray-800)}h3{font-size:1rem;font-weight:600;color:var(--gray-100);margin:1.5rem 0 .75rem}p{color:var(--gray-400);margin:.75rem 0}ul,ol{margin:1rem 0;padding-left:1.5rem}li{margin:.5rem 0;color:var(--gray-400)}li strong{color:var(--gray-100)}code{font-family:var(--font-mono);font-size:.875rem}p code,li code{background:var(--gray-900);padding:.125rem .375rem;border-radius:4px;font-size:.8125rem;color:var(--gray-100)}pre{background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;padding:1.25rem;overflow-x:auto;margin:1.5rem 0;font-size:.8125rem;line-height:1.6}pre code{background:none;padding:0;color:var(--gray-100)}.run-command{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;margin:1.5rem 0}.run-command code{flex:1;color:var(--gray-100)}.run-command .hint{font-size:.75rem;color:var(--gray-500)}.arch{background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;padding:1.5rem;margin:1.5rem 0;overflow-x:auto}.arch pre{background:transparent;border:none;padding:0;margin:0;font-size:.75rem;line-height:1.5;color:var(--gray-400)}.footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--gray-800);text-align:center}.footer a{color:var(--accent);text-decoration:none}.footer p{font-size:.875rem;color:var(--gray-500)}ol{list-style:decimal}</style>
+</head>
+<body>
+  <nav class="nav"><a href="../showcase/index.html" class="nav-brand"><svg viewBox="0 0 32 32" fill="none"><path d="M6 8L16 24L26 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 8H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/></svg><span>Fifth</span></a><a href="../showcase/index.html" class="nav-back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8L10 4"/></svg>All Examples</a></nav>
+  <main class="container">
+    <div class="badge">Agentic AI</div>
+    <h1>App from Spec</h1>
+    <p class="lead">Generate complete, runnable applications from YAML specifications. Multi-stage LLM synthesis: architecture → schema → API → frontend → tests. Validation at each stage.</p>
+
+    <h2>Run</h2>
+    <div class="run-command"><code>fifth examples/app-from-spec/main.fs generate spec.yaml output/</code><span class="hint">full generation</span></div>
+    <div class="run-command"><code>fifth examples/app-from-spec/main.fs stage schema spec.yaml</code><span class="hint">single stage</span></div>
+
+    <h2>The Pipeline</h2>
+    <div class="arch"><pre>spec.yaml
+    ↓
+Stage 1: Architecture  →  architecture.md (components, data flow)
+    ↓
+Stage 2: Schema        →  schema.sql, migrations/
+    ↓
+Stage 3: API           →  routes/, handlers/, middleware/
+    ↓
+Stage 4: Frontend      →  components/, pages/, services/
+    ↓
+Stage 5: Tests         →  tests/unit/, tests/integration/</pre></div>
+
+    <h2>Stage Details</h2>
+    <ol>
+      <li><strong>Architecture</strong> — System components, data flow, interfaces. Validated for coherence.</li>
+      <li><strong>Schema</strong> — SQL CREATE statements with foreign keys, indexes. Syntax-checked via <code>sqlite3 :memory:</code></li>
+      <li><strong>API</strong> — REST routes with CRUD, auth middleware, validation. Route coverage verified.</li>
+      <li><strong>Frontend</strong> — React components, forms, API client hooks. Field mapping checked.</li>
+      <li><strong>Tests</strong> — Unit, integration, e2e tests. Coverage for each source file.</li>
+    </ol>
+
+    <h2>Validation & Retry</h2>
+    <p>Each stage validates output before proceeding. On failure, feedback is included in regeneration prompt:</p>
+    <pre><code>Previous generation had issues:
+- Missing foreign key for Task.user_id
+- Invalid SQL syntax on line 23
+Please regenerate fixing these issues.</code></pre>
+
+    <h2>Supported Stacks</h2>
+    <ul>
+      <li><strong>Backend</strong> — Express, FastAPI, Go/Chi</li>
+      <li><strong>Database</strong> — SQLite, PostgreSQL</li>
+      <li><strong>Frontend</strong> — React, static HTML</li>
+    </ul>
+
+    <h2>Example Spec</h2>
+    <pre><code>name: TaskTracker
+entities:
+  - name: Task
+    fields:
+      - {name: title, type: string, required: true}
+      - {name: status, type: enum, values: [todo, done]}
+  - name: User
+    fields:
+      - {name: email, type: string, unique: true}
+relations:
+  - {type: belongs_to, from: Task, to: User}
+features: [authentication, crud, filtering]
+stack: {backend: express, database: sqlite, frontend: react}</code></pre>
+
+    <h2>Why Fifth?</h2>
+    <ul>
+      <li><strong>Shell-out orchestration</strong> — curl for LLM, jq/yq for parsing, mkdir for scaffolding</li>
+      <li><strong>Linear execution</strong> — Clear stage-by-stage flow with checkpoints</li>
+      <li><strong>Validation hooks</strong> — Each stage can validate and retry</li>
+    </ul>
+
+    <div class="footer"><p>Part of <a href="../showcase/index.html">Fifth Examples</a></p></div>
+  </main>
+</body>
+</html>

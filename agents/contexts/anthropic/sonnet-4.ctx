@@ -1,0 +1,81 @@
+# Fifth Language Context (Balanced)
+
+Fifth = Forth + HTML/SQL/string libraries. Stack-based, no dynamic allocation.
+
+## Critical Rules (Memorize)
+
+**1. Whitespace separates words**
+```forth
+</div>nl   \ WRONG: one undefined word
+</div> nl  \ RIGHT: two words
+```
+
+**2. Strings are pairs: `( addr u )`**
+```forth
+s" hello"  \ Pushes address AND length
+2dup 2drop 2swap  \ Pair operations
+```
+
+**3. Buffer pattern (no s+ concatenation)**
+```forth
+str-reset s" hello" str+ s" world" str+ str$
+```
+Two buffers: primary (`str-*`), secondary (`str2-*` for html-escape).
+
+**4. Stack comments required**
+```forth
+: word ( in1 in2 -- out ) ... ;
+```
+
+**5. Use `s\"` for quotes in strings**
+```forth
+s\" He said \"hello\""  \ s" has no escapes
+```
+
+**6. No single-quoted SQL literals** (shell quote collision)
+
+## Patterns
+
+### HTML
+```forth
+s" Title" html-head <style> ... </style> html-body
+  s" Hello" h1.
+  s" class" <div.> s" Safe <>" text </div> nl
+html-end
+```
+- `text` escapes, `raw` bypasses
+- `h1.` `p.` `li.` = convenience words
+
+### SQL
+```forth
+s" db.db" s" SELECT a,b FROM t" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if 2dup 0 sql-field type 2drop else 2drop then
+repeat 2drop
+sql-close
+```
+
+### String Building
+```forth
+str-reset s" Hello, " str+ name str+ s" !" str+ str$
+```
+
+## Stack Ops
+```forth
+dup drop swap over rot -rot
+2dup 2drop 2swap 2>r 2r>
+```
+
+## Files
+- `~/.fifth/lib/` - core.fs, str.fs, html.fs, sql.fs
+- `require` not `include`
+
+## Run
+```bash
+./fifth file.fs
+./fifth -e "2 3 + ."
+```
+
+## Never
+- `allocate`/`free`, `s+`, single-quoted SQL, `raw` on user data

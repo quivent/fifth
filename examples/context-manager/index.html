@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Manager — Fifth</title>
+  <link rel="icon" type="image/svg+xml" href="../../brand/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>:root{--black:#0a0a0a;--gray-950:#0f0f0f;--gray-900:#171717;--gray-800:#262626;--gray-700:#404040;--gray-500:#737373;--gray-400:#a3a3a3;--gray-100:#f5f5f5;--accent:#6366f1;--font-sans:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace}*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font-sans);background:var(--black);color:var(--gray-100);line-height:1.7}.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 1.5rem;background:rgba(10,10,10,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--gray-900);display:flex;align-items:center;justify-content:space-between}.nav-brand{display:flex;align-items:center;gap:.75rem;text-decoration:none;color:var(--gray-100)}.nav-brand svg{width:24px;height:24px}.nav-brand span{font-weight:600}.nav-back{font-size:.875rem;color:var(--gray-400);text-decoration:none;display:flex;align-items:center;gap:.5rem}.nav-back:hover{color:var(--gray-100)}.container{max-width:800px;margin:0 auto;padding:8rem 1.5rem 4rem}.badge{display:inline-block;padding:.25rem .75rem;background:var(--gray-900);border:1px solid var(--gray-800);border-radius:100px;font-size:.75rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1.5rem}h1{font-size:2.5rem;font-weight:600;letter-spacing:-.03em;margin-bottom:1rem}.lead{font-size:1.125rem;color:var(--gray-400);margin-bottom:2.5rem;line-height:1.7}h2{font-size:.75rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--gray-500);margin:3rem 0 1rem;padding-bottom:.75rem;border-bottom:1px solid var(--gray-800)}h3{font-size:1rem;font-weight:600;color:var(--gray-100);margin:1.5rem 0 .75rem}p{color:var(--gray-400);margin:.75rem 0}ul,ol{margin:1rem 0;padding-left:1.5rem}li{margin:.5rem 0;color:var(--gray-400)}li strong{color:var(--gray-100)}code{font-family:var(--font-mono);font-size:.875rem}p code,li code{background:var(--gray-900);padding:.125rem .375rem;border-radius:4px;font-size:.8125rem;color:var(--gray-100)}pre{background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;padding:1.25rem;overflow-x:auto;margin:1.5rem 0;font-size:.8125rem;line-height:1.6}pre code{background:none;padding:0;color:var(--gray-100)}.run-command{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;margin:1.5rem 0}.run-command code{flex:1;color:var(--gray-100)}.run-command .hint{font-size:.75rem;color:var(--gray-500)}.arch{background:var(--gray-950);border:1px solid var(--gray-800);border-radius:8px;padding:1.5rem;margin:1.5rem 0;overflow-x:auto}.arch pre{background:transparent;border:none;padding:0;margin:0;font-size:.75rem;line-height:1.5;color:var(--gray-400)}.footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--gray-800);text-align:center}.footer a{color:var(--accent);text-decoration:none}.footer p{font-size:.875rem;color:var(--gray-500)}</style>
+</head>
+<body>
+  <nav class="nav"><a href="../showcase/index.html" class="nav-brand"><svg viewBox="0 0 32 32" fill="none"><path d="M6 8L16 24L26 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 8H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/></svg><span>Fifth</span></a><a href="../showcase/index.html" class="nav-back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8L10 4"/></svg>All Examples</a></nav>
+  <main class="container">
+    <div class="badge">Agentic AI</div>
+    <h1>Context Manager</h1>
+    <p class="lead">Intelligent context window management for long-running agents. Hierarchical memory, LLM summarization, priority scoring, and retrieval — keep what matters, compress the rest.</p>
+
+    <h2>Run</h2>
+    <div class="run-command"><code>fifth examples/context-manager/main.fs add user "Fix the auth bug"</code><span class="hint">add message</span></div>
+    <div class="run-command"><code>fifth examples/context-manager/main.fs build > context.txt</code><span class="hint">build context</span></div>
+
+    <h2>The Problem</h2>
+    <p>LLMs have finite context windows. During long sessions: important info gets pushed out, redundant content wastes tokens, no prioritization exists, and retrieval failures cause inconsistent decisions.</p>
+    <div class="arch"><pre>Token 0              Token N/2              Token N (current)
+───────              ────────               ─────────────────
+[LOST]               [COMPRESSED]           [FULL DETAIL]
+
+System prompt        Summarized             Current task
+Key decisions        conversations          Tool outputs
+Project rules        Old tasks              Recent messages</pre></div>
+
+    <h2>Strategies</h2>
+    <ul>
+      <li><strong>Sliding window</strong> — Keep N most recent tokens. Simple but loses early context.</li>
+      <li><strong>Hierarchical memory</strong> — Permanent / Session / Working / Volatile levels with different retention.</li>
+      <li><strong>Summarization</strong> — LLM compresses older context preserving key decisions, errors, action items.</li>
+      <li><strong>Priority scoring</strong> — Score = Recency × 0.3 + References × 0.2 + TaskRelevance × 0.4 + Explicit × 0.1</li>
+      <li><strong>RAG</strong> — Store full history in SQLite, retrieve relevant portions on demand.</li>
+    </ul>
+
+    <h2>Memory Levels</h2>
+    <pre><code>Level 1: PERMANENT  (2000 tokens)  — System prompt, project rules
+Level 2: SESSION    (4000 tokens)  — Task summaries, key decisions
+Level 3: WORKING    (8000 tokens)  — Recent conversation, tool outputs
+Level 4: VOLATILE   (remaining)    — Verbose output, exploration</code></pre>
+
+    <h2>Commands</h2>
+    <ul>
+      <li><code>add &lt;role&gt; &lt;content&gt;</code> — Add message to context</li>
+      <li><code>stats</code> — Show token usage by level</li>
+      <li><code>build</code> — Assemble optimized context for LLM call</li>
+      <li><code>compress</code> — Force summarization of old content</li>
+      <li><code>search &lt;keyword&gt;</code> — Retrieve messages by content</li>
+    </ul>
+
+    <h2>Statistics</h2>
+    <pre><code>Context Manager Stats
+─────────────────────
+Total tokens:     12,847 / 16,000 (80%)
+Compression ratio: 4.2x average
+
+Level breakdown:
+  Permanent:   1,850 / 2,000
+  Session:     3,200 / 4,000
+  Working:     6,500 / 8,000
+  Volatile:    1,297</code></pre>
+
+    <h2>Why Fifth?</h2>
+    <p>Fifth's static buffers map naturally to context management. No allocation means predictable memory footprint. SQLite for persistent history, shell-out to LLM for summarization, tiktoken for accurate counting.</p>
+
+    <div class="footer"><p>Part of <a href="../showcase/index.html">Fifth Examples</a></p></div>
+  </main>
+</body>
+</html>

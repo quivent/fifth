@@ -1,0 +1,104 @@
+# Fifth (DeepSeek Coder)
+
+## Syntax
+
+```forth
+: word ( in -- out ) body ;
+s" str"              \ -> ( addr len )
+\ comment
+```
+
+**CRITICAL**: `</div>nl` = 1 word (error). `</div> nl` = 2 words (correct).
+
+## Strings
+
+```forth
+\ Static buffer pattern (REQUIRED)
+str-reset s" a" str+ s" b" str+ str$  \ -> ( addr len )
+
+\ Pair operations
+2dup 2drop 2swap 2>r 2r>
+
+\ NEVER: s+ allocate free
+```
+
+## HTML
+
+```forth
+s" /tmp/x.html" w/o create-file throw html>file
+s" T" html-head <style> s" css" text </style> html-body
+<div> s" class" s" c" attr> s" x" text </div>
+html-end html-fid @ close-file throw
+```
+
+| Word | Stack | Output |
+|------|-------|--------|
+| `<div>` | ( -- ) | `<div>` |
+| `</div>` | ( -- ) | `</div>` |
+| `attr>` | ( n-a n-u v-a v-u -- ) | ` n="v"` then `>` |
+| `text` | ( a u -- ) | escaped |
+| `raw` | ( a u -- ) | unescaped |
+| `nl` | ( -- ) | newline |
+
+## SQL
+
+```forth
+s" f.db" s" SELECT a,b FROM t" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if 2dup 0 sql-field type 2dup 1 sql-field type 2drop
+  else 2drop then
+repeat 2drop sql-close
+```
+
+Pipe-delimited. No `'` in SQL (shell conflict).
+
+## Stack
+
+| Op | Effect |
+|----|--------|
+| `dup` | ( a -- a a ) |
+| `drop` | ( a -- ) |
+| `swap` | ( a b -- b a ) |
+| `over` | ( a b -- a b a ) |
+| `rot` | ( a b c -- b c a ) |
+| `2dup` | ( a b -- a b a b ) |
+| `2drop` | ( a b -- ) |
+| `2swap` | ( a b c d -- c d a b ) |
+
+## Control
+
+```forth
+condition IF true-branch THEN
+condition IF true ELSE false THEN
+limit start DO body LOOP
+BEGIN body condition UNTIL
+BEGIN condition WHILE body REPEAT
+```
+
+## Examples
+
+```forth
+: double ( n -- n*2 ) 2 * ;
+
+: greet ( a u -- )
+  <p> s" Hi " text text </p> ;
+
+: row ( a u -- )
+  <tr> <td> 2dup 0 sql-field text </td>
+       <td> 2dup 1 sql-field text </td> </tr> 2drop ;
+```
+
+## Libs
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs  \ str html sql
+```
+
+## Debug
+
+```forth
+.s   \ print stack
+.    \ print & pop number
+```

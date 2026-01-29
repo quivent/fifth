@@ -1,0 +1,46 @@
+# Fifth (Minimal Context)
+
+Stack-based language. Whitespace = only delimiter.
+
+## Essentials
+
+```forth
+\ String buffer pattern (ALWAYS use this)
+str-reset s" text" str+ str$  ( -- addr u )
+
+\ Stack: strings are TWO items (addr, len)
+2dup 2drop 2swap  \ pair operations
+
+\ HTML output
+<div> s" content" text </div>
+```
+
+## Critical Bugs
+
+1. `</div>nl` WRONG -> `</div> nl` (space required)
+2. `s+` CRASHES -> use `str-reset str+ str$`
+3. Stack imbalance -> "Invalid memory address"
+
+## Patterns
+
+HTML:
+```forth
+s" /tmp/out.html" w/o create-file throw html>file
+s" Title" html-head html-body
+  <p> s" Hello" text </p>
+html-end
+html-fid @ close-file throw
+```
+
+SQL:
+```forth
+s" db.db" s" SELECT x FROM t" sql-exec
+sql-open
+begin sql-row? while
+  2dup 0 sql-field type 2drop
+repeat 2drop sql-close
+```
+
+## Word Signature
+
+Every word: `( inputs -- outputs )`

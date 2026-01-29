@@ -1,0 +1,88 @@
+# Fifth Context for Llama 70B
+
+## Quick Summary
+
+Fifth = Forth-based language for HTML/SQL apps. Stack-based, whitespace-delimited.
+
+## Critical Rules
+
+1. **Whitespace splits tokens**: `</div>nl` WRONG, `</div> nl` RIGHT
+2. **Strings = pairs**: `s" hi"` pushes (addr, len), use `2dup`/`2drop`/`2swap`
+3. **No dynamic strings**: Use `str-reset str+ str$`, never `s+`
+
+## Buffer Pattern
+
+```forth
+\ Build strings in static buffer
+str-reset
+s" part1" str+
+s" part2" str+
+str$  ( -- addr u )
+```
+
+Two buffers: Primary (`str-*`) and Secondary (`str2-*`)
+
+## HTML Pattern
+
+```forth
+s" /tmp/out.html" w/o create-file throw html>file
+s" Title" html-head
+html-body
+  <div> s" content" text </div>
+html-end
+html-fid @ close-file throw
+```
+
+Key words:
+- `<tag>` / `</tag>` - Open/close tags
+- `text` - HTML-escaped content
+- `attr>` - Add attribute: `s" class" s" name" attr>`
+
+## SQL Pattern
+
+```forth
+s" db.db" s" SELECT a,b FROM t" sql-exec
+sql-open
+begin sql-row? while
+  2dup 0 sql-field type  \ col 0
+  2dup 1 sql-field type  \ col 1
+  2drop
+repeat 2drop
+sql-close
+```
+
+Results are pipe-delimited. No single quotes in SQL (shell conflict).
+
+## Word Definition
+
+```forth
+: word-name ( inputs -- outputs )
+  \ body here
+  ;
+
+\ Example:
+: double ( n -- n*2 )
+  2 * ;
+```
+
+## Stack Operations
+
+| Word | Effect |
+|------|--------|
+| `2dup` | ( a u -- a u a u ) |
+| `2drop` | ( a u -- ) |
+| `2swap` | ( a1 u1 a2 u2 -- a2 u2 a1 u1 ) |
+| `2>r` / `2r>` | Save/restore pair to return stack |
+
+## Common Errors
+
+- "Undefined word: X" - Check whitespace, spelling
+- "Invalid memory address" - Stack imbalance, add `.s` to debug
+- Crash on string ops - Using `s+` instead of buffer pattern
+
+## Load Libraries
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs
+```

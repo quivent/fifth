@@ -1,0 +1,58 @@
+# Sample specification for app-from-spec
+# Run: ./fifth examples/app-from-spec/main.fs generate examples/app-from-spec/sample-spec.yaml output/
+
+name: TaskTracker
+description: A simple task management application with user authentication
+
+entities:
+  - name: Task
+    fields:
+      - name: title
+        type: string
+        required: true
+      - name: description
+        type: text
+      - name: status
+        type: enum
+        values: [todo, in_progress, done]
+        default: todo
+      - name: priority
+        type: enum
+        values: [low, medium, high]
+        default: medium
+      - name: due_date
+        type: date
+
+  - name: User
+    fields:
+      - name: email
+        type: string
+        required: true
+        unique: true
+      - name: name
+        type: string
+      - name: password_hash
+        type: string
+        hidden: true
+
+relations:
+  - type: belongs_to
+    from: Task
+    to: User
+    as: assignee
+    foreign_key: user_id
+
+features:
+  - authentication   # JWT-based auth
+  - crud            # Full CRUD for all entities
+  - filtering       # Query parameter filtering
+
+stack:
+  backend: express
+  database: sqlite
+  frontend: react
+
+# Optional: Custom templates for generation
+# templates:
+#   schema_prompt: |
+#     Custom schema generation prompt...
