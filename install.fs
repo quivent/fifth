@@ -1,10 +1,10 @@
-\ install.fs - Fifth self-installer
+\ install.fs - Fifth installs itself
 \
-\ Run after building the interpreter:
+\ After building the interpreter:
 \   cd engine && make && cd ..
 \   ./fifth install.fs
 \
-\ This script sets up ~/.fifth/ with libraries and packages.
+\ Sets up ~/.fifth/ with libraries and packages.
 
 \ Get FIFTH_HOME or default to ~/.fifth
 : fifth-home ( -- addr u )

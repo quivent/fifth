@@ -32,7 +32,7 @@ cd fifth && cd engine && make && cd ..
 ./fifth install.fs
 ```
 
-That's it. The installer is written in Forth because we practice what we preach.
+That's it. Fifth installs itself.
 
 <details>
 <summary>Alternative: Pure bash install</summary>
