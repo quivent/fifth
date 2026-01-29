@@ -1,10 +1,300 @@
 # Fifth
 
-**A Forth for the agentic era.**
+```
+    ███████╗██╗███████╗████████╗██╗  ██╗
+    ██╔════╝██║██╔════╝╚══██╔══╝██║  ██║
+    █████╗  ██║█████╗     ██║   ███████║
+    ██╔══╝  ██║██╔══╝     ██║   ██╔══██║
+    ██║     ██║██║        ██║   ██║  ██║
+    ╚═╝     ╚═╝╚═╝        ╚═╝   ╚═╝  ╚═╝
+         A Forth for the Agentic Era
+```
+
+> *"I think the industry is fundamentally unable to appreciate simplicity."*
+> — Chuck Moore, creator of Forth
 
 Fifth is a self-contained Forth ecosystem designed for AI-assisted development. One binary, zero dependencies, instant startup. The explicit stack model and small vocabulary make it uniquely suited for LLM code generation — where other languages struggle with implicit state and sprawling APIs, Forth's simplicity becomes an advantage.
 
 Write tools that parse data, generate HTML, query databases — and optionally compile them to native code when you need speed.
+
+---
+
+## Installation
+
+### Quick Install (30 seconds)
+
+```bash
+# Clone the repository
+git clone https://github.com/youruser/fifth.git
+cd fifth
+
+# Build the interpreter (zero dependencies, <1 second)
+cd engine && make && cd ..
+
+# Set up the package system
+mkdir -p ~/.fifth/lib ~/.fifth/packages
+cp -r lib/* ~/.fifth/lib/
+
+# Verify installation
+./fifth -e "2 3 + . cr"   # Should print: 5
+```
+
+### What You Get
+
+```
+~/fifth/                     Your Fifth installation
+├── fifth                    CLI wrapper script
+├── engine/fifth             57 KB interpreter binary
+└── examples/                Ready-to-run examples
+
+~/.fifth/                    Your package directory (FIFTH_HOME)
+├── lib/                     Core libraries (str, html, sql, ui)
+└── packages/                Your installed packages
+```
+
+---
+
+## Quick Start
+
+### Hello, World
+
+```bash
+./fifth -e ': hello ." Hello, World!" cr ; hello'
+```
+
+### Interactive REPL
+
+```bash
+./fifth
+\ Welcome to Fifth
+2 3 + .          \ 5
+: square dup * ;
+5 square .       \ 25
+bye
+```
+
+### Run a File
+
+```bash
+./fifth examples/project-dashboard.fs
+```
+
+### Your First Program
+
+Create `hello.fs`:
+
+```forth
+\ hello.fs - My first Fifth program
+
+: greet ( -- )
+  ." Welcome to Fifth!" cr
+  ." The stack has " depth . ." items." cr ;
+
+: countdown ( n -- )
+  begin
+    dup .
+    1-
+    dup 0=
+  until drop
+  ." Liftoff!" cr ;
+
+greet
+5 countdown
+bye
+```
+
+Run it:
+
+```bash
+./fifth hello.fs
+```
+
+---
+
+## Usage Examples
+
+### Generate HTML Reports
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs
+use lib:html.fs
+
+s" /tmp/hello.html" w/o create-file throw html>file
+s" My Page" html-head html-body
+  s" Hello from Fifth!" h1.
+  s" Generated with zero dependencies." p.
+html-end
+html-fid @ close-file throw
+
+\ Open in browser
+s" open /tmp/hello.html" system
+```
+
+### Query SQLite Databases
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs
+
+\ Count users
+s" users.db" s" SELECT COUNT(*) FROM users" sql-count .   \ 42
+
+\ List all users
+s" users.db" s" SELECT name, email FROM users" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if
+    2dup 0 sql-field type ."  <"
+    2dup 1 sql-field type ." >" cr
+    2drop
+  else 2drop then
+repeat 2drop
+sql-close
+```
+
+### Build a Dashboard
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use lib:core.fs
+use lib:ui.fs
+
+s" /tmp/dashboard.html" w/o create-file throw html>file
+s" System Status" html-head ui-css html-body
+
+grid-auto-begin
+  42 s" Users" stat-card-n
+  7 s" Active" stat-card-n
+  99 s" Uptime %" stat-card-n
+grid-end
+
+html-end
+html-fid @ close-file throw
+```
+
+---
+
+## Package System
+
+Fifth uses `~/.fifth/` as its package home (configurable via `FIFTH_HOME`).
+
+### Using Libraries
+
+```forth
+\ Bootstrap the package system first
+require ~/.fifth/lib/pkg.fs
+
+\ Load core libraries with lib: prefix
+use lib:str.fs           \ String buffers
+use lib:html.fs          \ HTML generation
+use lib:sql.fs           \ SQLite interface
+use lib:ui.fs            \ Dashboard components
+use lib:core.fs          \ Loads str + html + sql
+
+\ Or load everything at once
+use lib:core.fs
+```
+
+### Using Packages
+
+```forth
+\ Load a package with pkg: prefix
+use pkg:my-package       \ Loads ~/.fifth/packages/my-package/package.fs
+```
+
+### Creating a Package
+
+```bash
+# Create package directory
+mkdir -p ~/.fifth/packages/my-tools
+
+# Create the main entry point
+cat > ~/.fifth/packages/my-tools/package.fs << 'EOF'
+\ my-tools/package.fs - My custom tools
+
+require ~/.fifth/lib/pkg.fs
+use lib:str.fs
+
+: greet-user ( addr u -- )
+  ." Hello, " type ." !" cr ;
+
+: timestamp ( -- )
+  ." Generated: "
+  s" date '+%Y-%m-%d %H:%M:%S'" system ;
+EOF
+```
+
+Now use it:
+
+```forth
+require ~/.fifth/lib/pkg.fs
+use pkg:my-tools
+
+s" Alice" greet-user    \ Hello, Alice!
+timestamp               \ Generated: 2024-01-28 15:30:00
+```
+
+### Package Structure
+
+```
+~/.fifth/packages/my-package/
+├── package.fs           Entry point (required)
+├── utils.fs             Additional modules
+├── data/                Package data files
+└── README.md            Documentation
+```
+
+---
+
+## Why Forth? A Brief History
+
+Forth was created by **Chuck Moore** in 1970 for controlling telescopes. Its design priorities:
+
+- **Minimal footprint** — Run on 4KB of RAM
+- **Interactive development** — Test words immediately
+- **Direct hardware access** — No OS abstraction layer
+- **Self-contained** — Compiler, interpreter, and editor in one
+
+These constraints produced a language unlike any other:
+
+```forth
+: SQUARED  DUP * ;
+: CUBED    DUP SQUARED * ;
+5 CUBED .   \ 125
+```
+
+No syntax. No types. No objects. Just words operating on a stack.
+
+### The Forth Family Tree
+
+```
+1970  FORTH          Chuck Moore's original
+  │
+  ├── 1983  Forth-83      First standardization attempt
+  │
+  ├── 1994  ANS Forth     ANSI standard (X3.215-1994)
+  │     │
+  │     ├── Gforth        GNU Forth, reference implementation
+  │     ├── SwiftForth    Commercial, Windows focus
+  │     └── VFX Forth     Optimizing compiler
+  │
+  └── 2024  Fifth         For the agentic era ← You are here
+```
+
+### Fifth vs Gforth
+
+| Aspect | Gforth | Fifth |
+|--------|--------|-------|
+| **Philosophy** | Standards compliance | Practical minimalism |
+| **Binary size** | ~2 MB | 57 KB |
+| **Startup** | 5-10ms | <1ms |
+| **Dependencies** | libffi, libltdl | None |
+| **FFI** | Yes (complex) | Shell-out pattern |
+| **Compilation** | Threaded code | Native via Cranelift |
+| **Focus** | General-purpose | AI-assisted development |
+
+Fifth isn't "better" than Gforth — it has different goals. Gforth is a complete ANS Forth implementation. Fifth is a practical toolkit optimized for code generation and rapid deployment.
 
 ---
 
@@ -14,10 +304,10 @@ Most programming languages were designed for humans typing code. They optimize f
 
 | Challenge for LLMs | Traditional Languages | Fifth/Forth |
 |-------------------|----------------------|-------------|
-| **Implicit state** | Variables scattered across scopes, closures capturing context, mutable globals | One explicit stack. All state visible. |
+| **Implicit state** | Variables scattered across scopes, closures capturing context | One explicit stack. All state visible. |
 | **Large API surface** | Thousands of methods, multiple ways to do everything | ~75 core words. One way to do each thing. |
 | **Complex control flow** | Callbacks, promises, async/await, exceptions | Linear execution. Explicit branches. |
-| **Hidden side effects** | Methods that mutate, getters that compute, operators that allocate | Stack effects documented on every word. |
+| **Hidden side effects** | Methods that mutate, getters that compute | Stack effects documented on every word. |
 | **Verification difficulty** | Types help but don't prevent logic errors | Stack effect composition is mechanically checkable. |
 
 ### Why This Matters
@@ -38,6 +328,8 @@ An LLM can verify this composition. It cannot verify that a Python function with
 **Explicit state eliminates hallucination vectors.** When the only state is a stack of integers, there's nowhere for imagined variables or phantom objects to hide. The LLM either tracks the stack correctly or produces code that fails immediately — not code that works sometimes and corrupts data later.
 
 **Small vocabulary means fewer combinations to learn.** GPT-4 has seen millions of Python programs with millions of API combinations. It still hallucinates method names. Fifth has 75 words. An LLM can hold the entire language in context and generate valid code reliably.
+
+→ *See [docs/agentic-coding.md](docs/agentic-coding.md) for the full analysis.*
 
 ---
 
@@ -112,9 +404,9 @@ What you ship.
 
 | Metric | Fifth | Python | JavaScript | Rust |
 |--------|-------|--------|------------|------|
-| Core words/keywords | 75 | 35 keywords + 150+ builtins | 50+ keywords + 1000s of APIs | 50+ keywords + large stdlib |
-| Concepts to learn | Stack, dictionary, words | Objects, classes, decorators, generators, async, context managers, etc. | Prototypes, closures, promises, async, this binding, etc. | Ownership, borrowing, lifetimes, traits, macros, etc. |
-| Syntax rules | 1 (whitespace splits) | Many (significant whitespace, operators, comprehensions, etc.) | Many (ASI, operator precedence, destructuring, etc.) | Many (complex grammar) |
+| Core words/keywords | 75 | 35 + 150 builtins | 50+ keywords | 50+ keywords |
+| Concepts to learn | Stack, dictionary, words | Objects, classes, async, decorators... | Prototypes, closures, promises... | Ownership, borrowing, lifetimes... |
+| Syntax rules | 1 (whitespace splits) | Many | Many | Many |
 | Time to learn basics | 1-2 hours | 1-2 days | 1-2 days | 1-2 weeks |
 | Time to mastery | 1-2 weeks | Months | Months | Months to years |
 
@@ -129,12 +421,12 @@ What you ship.
 | Windows | ✓ (MinGW/WSL) | ✓ |
 | FreeBSD | ✓ | ✓ |
 | WebAssembly | Planned | Planned |
-| Embedded (bare metal) | Possible (port required) | Via C codegen |
+| Embedded | Possible | Via C codegen |
 
 **Dependencies:**
 - Interpreter: C11 compiler only (gcc, clang, tcc)
-- Compiler: Rust toolchain
-- Libraries: `sqlite3` CLI for database features (optional)
+- Compiler: Rust toolchain (optional)
+- Libraries: `sqlite3` CLI (optional, for database features)
 
 ### Size Breakdown
 
@@ -165,77 +457,7 @@ Fifth Compiler (compiler/)
 └── Total        14,300 lines
 ```
 
-### Optimization Passes
-
-The compiler applies five optimization passes:
-
-| Pass | What It Does | Impact |
-|------|--------------|--------|
-| **Constant folding** | `2 3 +` → `5` at compile time | Eliminates runtime math |
-| **Dead code elimination** | Removes unreachable branches | Smaller binaries |
-| **Inline expansion** | Small words inlined at call sites | Reduces call overhead |
-| **Stack scheduling** | Reorders operations to minimize stack shuffling | Fewer `swap`/`rot` operations |
-| **Register allocation** | Maps stack slots to CPU registers | Native performance |
-
-### Adaptability
-
-| Extension Point | Mechanism |
-|-----------------|-----------|
-| **New words** | Define with `: word ... ;` |
-| **New primitives** | Add C function to `prims.c`, register with `vm_add_prim()` |
-| **New libraries** | Create `.fs` file in `~/.fifth/lib/`, load with `use lib:` |
-| **New packages** | Create directory in `~/.fifth/packages/`, add `package.fs` |
-| **Custom backends** | Implement `CodeGen` trait in compiler |
-| **Embedded use** | Link `libfifth.a`, call `vm_init()`, `vm_eval()` |
-
 ---
-
-## Quick Start
-
-```bash
-# Build the interpreter (zero dependencies, <1 second)
-cd engine && make && cd ..
-
-# Run a program
-./fifth examples/project-dashboard.fs
-
-# Interactive REPL
-./fifth
-
-# One-liner
-./fifth -e "2 3 + . cr"
-```
-
-## What You Can Build
-
-Fifth includes practical libraries for real tasks:
-
-```forth
-\ Generate an HTML dashboard from a SQLite database
-require ~/.fifth/lib/pkg.fs
-use lib:core.fs
-use lib:ui.fs
-
-s" /tmp/report.html" w/o create-file throw html>file
-s" Sales Report" html-head ui-css html-body
-
-s" sales.db" s" SELECT region, total FROM summary" sql-exec
-sql-open
-begin sql-row? while
-  dup 0> if
-    2dup 0 sql-field   \ region
-    2dup 1 sql-field   \ total
-    stat-card
-    2drop
-  else 2drop then
-repeat 2drop
-sql-close
-
-html-end
-html-fid @ close-file throw
-```
-
-This generates a styled HTML report with stat cards — in 20 lines, with automatic HTML escaping, no dependencies beyond `sqlite3`.
 
 ## Architecture
 
@@ -256,129 +478,7 @@ This generates a styled HTML report with stat cards — in 20 lines, with automa
 
 Same source files work on all backends.
 
-## Project Structure
-
-```
-~/fifth/
-├── fifth                    # CLI wrapper
-├── engine/                  # C interpreter (57 KB binary)
-│   ├── vm.c                 # Virtual machine core
-│   ├── prims.c              # Primitive words
-│   └── io.c                 # File I/O, system calls
-├── compiler/                # Rust compiler (Cranelift backend)
-└── examples/                # Example applications
-
-~/.fifth/                    # Package system (FIFTH_HOME)
-├── lib/                     # Core libraries
-│   ├── str.fs               # String buffers, parsing
-│   ├── html.fs              # HTML generation, escaping
-│   ├── sql.fs               # SQLite interface
-│   ├── template.fs          # Deferred slots, layouts
-│   ├── ui.fs                # Dashboard components
-│   ├── pkg.fs               # Package system
-│   └── core.fs              # Loads all libraries
-└── packages/                # Installed packages
-    └── claude-tools/        # Example package
-```
-
-## Package System
-
-Fifth uses a simple package system with `lib:` and `pkg:` prefixes:
-
-```forth
-\ Bootstrap the package system
-require ~/.fifth/lib/pkg.fs
-
-\ Load a library
-use lib:core.fs          \ Loads from ~/.fifth/lib/core.fs
-use lib:ui.fs            \ Loads from ~/.fifth/lib/ui.fs
-
-\ Load a package
-use pkg:claude-tools     \ Loads ~/.fifth/packages/claude-tools/package.fs
-
-\ Package info
-.fifth-home              \ Shows FIFTH_HOME path
-./fifth pkg list         \ Lists installed packages
-```
-
-## Libraries
-
-### str.fs — String Buffers
-
-No dynamic allocation. Two static buffers that handle all string operations.
-
-```forth
-use lib:str.fs
-
-str-reset
-s" Hello, " str+
-s" World!" str+
-str$ type               \ Hello, World!
-
-\ Parse delimited data
-s" alice|bob|charlie" 1 parse-pipe type   \ bob
-```
-
-### html.fs — HTML Generation
-
-Full HTML5 vocabulary with automatic XSS escaping.
-
-```forth
-use lib:html.fs
-
-s" output.html" w/o create-file throw html>file
-s" Page Title" html-head html-body
-  s" <script>alert('xss')</script>" h1.   \ Escaped automatically!
-html-end
-html-fid @ close-file throw
-```
-
-### sql.fs — SQLite Interface
-
-Query databases via the `sqlite3` CLI. No C bindings, no FFI.
-
-```forth
-use lib:sql.fs
-
-\ Count rows
-s" users.db" s" SELECT COUNT(*) FROM users" sql-count .   \ 42
-
-\ Iterate results
-s" users.db" s" SELECT name, email FROM users" sql-exec
-sql-open
-begin sql-row? while
-  dup 0> if
-    2dup 0 sql-field type ."  - "
-    2dup 1 sql-field type cr
-    2drop
-  else 2drop then
-repeat 2drop
-sql-close
-```
-
-### ui.fs — Dashboard Components
-
-Pre-built components with dark theme CSS.
-
-```forth
-use lib:ui.fs
-
-\ Stat cards
-42 s" Users" stat-card-n
-s" Active" badge-success
-
-\ Tabs
-tabs-begin
-  s" Overview" s" tab1" true tab
-  s" Details" s" tab2" false tab
-tabs-end
-
-s" tab1" true panel-begin
-  s" Overview content" p.
-panel-end
-```
-
-## Backends
+### Backends Comparison
 
 | Backend | Startup | Speed vs C | Binary Size | Use Case |
 |---------|---------|------------|-------------|----------|
@@ -390,14 +490,44 @@ panel-end
 # Interpreted (default)
 ./fifth program.fs
 
-# Compiled
+# Compiled to native
 ./fifth compile program.fs -o program
 ./program
 ```
 
+---
+
+## Project Structure
+
+```
+~/fifth/
+├── fifth                    # CLI wrapper
+├── engine/                  # C interpreter (57 KB binary)
+│   ├── vm.c                 # Virtual machine core
+│   ├── prims.c              # Primitive words (~75)
+│   └── io.c                 # File I/O, system calls
+├── compiler/                # Rust compiler (Cranelift backend)
+├── lib/                     # Source libraries (copied to ~/.fifth/lib/)
+├── examples/                # Example applications
+└── docs/                    # Documentation
+
+~/.fifth/                    # Package system (FIFTH_HOME)
+├── lib/                     # Core libraries
+│   ├── str.fs               # String buffers, parsing
+│   ├── html.fs              # HTML generation, escaping
+│   ├── sql.fs               # SQLite interface
+│   ├── template.fs          # Deferred slots, layouts
+│   ├── ui.fs                # Dashboard components
+│   ├── pkg.fs               # Package system
+│   └── core.fs              # Loads all libraries
+└── packages/                # Your installed packages
+```
+
+---
+
 ## Building
 
-### Interpreter Only
+### Interpreter Only (Recommended)
 
 ```bash
 cd engine
@@ -405,7 +535,7 @@ make
 # Binary: engine/fifth (57 KB, zero dependencies)
 ```
 
-### With Compiler
+### With Native Compiler
 
 ```bash
 # Interpreter
@@ -419,6 +549,8 @@ cd compiler && cargo build --release --features cranelift && cd ..
 ./fifth compile examples/hello.fs   # compile
 ```
 
+---
+
 ## Documentation
 
 | Document | Description |
@@ -429,10 +561,31 @@ cd compiler && cargo build --release --features cranelift && cd ..
 | [docs/contributing.md](docs/contributing.md) | Development guide |
 | [docs/agentic-coding.md](docs/agentic-coding.md) | AI-assisted development in depth |
 
+---
+
+## Contributing
+
+Fifth grows by solving real problems. If you build something useful, extract the reusable words and submit them.
+
+See [docs/contributing.md](docs/contributing.md).
+
+---
+
 ## License
 
 MIT
 
-## Contributing
+---
 
-Fifth grows by solving real problems. If you build something useful, extract the reusable words and submit them. See [docs/contributing.md](docs/contributing.md).
+```
+    "Simplicity is prerequisite for reliability."
+                              — Edsger Dijkstra
+
+    "Make it work, make it right, make it fast."
+                              — Kent Beck
+
+    "If you can't explain it simply, you don't understand it."
+                              — Richard Feynman
+```
+
+*Fifth: Because sometimes less is more.*
