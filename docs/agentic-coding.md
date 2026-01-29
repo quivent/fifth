@@ -65,8 +65,8 @@ The difference is bloat:
 Real measurements (M-series Mac):
 
 ```
-Fifth startup:        5ms
-Forth 10K iterations: 2ms    ← Interpretation
+Fifth startup:        2ms
+Forth 10K iterations: 2ms
 sqlite3 subprocess:   4ms
 File write:          <1ms
 open (launch app):   56ms
