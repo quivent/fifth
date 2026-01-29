@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>Project Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#0a0a0f;color:#e4e4e7;min-height:100vh}
+h1{font-size:1.5rem;color:#a78bfa}
+h2{font-size:1.1rem;color:#8b5cf6;margin-bottom:1rem}
+code{background:rgba(139,92,246,0.15);padding:0.15rem 0.4rem;border-radius:0.25rem;font-size:0.8rem;color:#c4b5fd}
+strong{color:#c4b5fd}
+</style>
+<style>
+.dashboard{display:flex;min-height:100vh}
+.dashboard-header{padding:1.5rem 2rem;border-bottom:1px solid rgba(255,255,255,0.1)}
+.dashboard-header h1{margin-bottom:0.25rem}
+.subtitle{color:#71717a;font-size:0.85rem}
+.dashboard-main{flex:1;padding:2rem;overflow-y:auto}
+.sidebar{width:220px;background:#18181b;border-right:1px solid rgba(255,255,255,0.1);padding:1rem 0;flex-shrink:0}
+.sidebar-section{padding:0.75rem 1rem;color:#71717a;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em}
+.nav-item{display:block;padding:0.6rem 1rem;color:#a1a1aa;text-decoration:none;font-size:0.85rem;cursor:pointer;border-left:2px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,0.05)}
+.nav-item.active{background:rgba(139,92,246,0.1);border-left-color:#8b5cf6;color:#c4b5fd}
+.tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab{padding:0.6rem 1.2rem;background:rgba(255,255,255,0.05);border:none;border-radius:0.5rem;color:#a1a1aa;cursor:pointer;font-size:0.85rem}
+.tab:hover{background:rgba(255,255,255,0.1)}
+.tab.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:#18181b;border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem}
+.card h3{color:#c4b5fd;font-size:1rem;margin-bottom:0.5rem}
+.card p{color:#a1a1aa;font-size:0.875rem;line-height:1.5}
+.card-header{border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:0.75rem;margin-bottom:0.75rem}
+.stat-card{background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(99,102,241,0.1));border:1px solid rgba(139,92,246,0.3);border-radius:0.75rem;padding:1.25rem;text-align:center}
+.stat-value{font-size:2rem;font-weight:700;color:#a78bfa}
+.stat-label{font-size:0.75rem;color:#71717a;margin-top:0.25rem}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.7rem;font-weight:500;margin-right:0.4rem}
+.bg-primary{background:#1e40af;color:#93c5fd}
+.bg-success{background:#065f46;color:#6ee7b7}
+.bg-warning{background:#92400e;color:#fcd34d}
+.bg-danger{background:#991b1b;color:#fca5a5}
+.bg-info{background:#0e7490;color:#67e8f9}
+.grid{display:grid;gap:1rem}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+.table{width:100%;border-collapse:collapse;font-size:0.85rem}
+.table th{text-align:left;padding:0.75rem;color:#8b5cf6;border-bottom:1px solid rgba(255,255,255,0.15);font-weight:500}
+.table td{padding:0.75rem;border-bottom:1px solid rgba(255,255,255,0.05);color:#a1a1aa}
+.table code{background:rgba(139,92,246,0.15);padding:0.15rem 0.4rem;border-radius:0.25rem;font-size:0.8rem;color:#c4b5fd}
+.term{color:#c084fc;font-weight:600}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+</style>
+</head>
+<body>
+<div class='dashboard'>
+<header class='dashboard-header'>
+
+<h1>Project Database</h1>
+<p class='subtitle'>Encoded project identities from <code>~/.claude/db/projects.db</code></p>
+</header>
+
+<main class='dashboard-main'>
+
+<div class='grid grid-4'>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Projects</div></div>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Constraints</div></div>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Navigation</div></div>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Glossary</div></div>
+</div>
+<div class='grid grid-4'>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Commands</div></div>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Conventions</div></div>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Integrations</div></div>
+<div class='stat-card'><div class='stat-value'>0</div><div class='stat-label'>Personas</div></div>
+</div>
+
+<br>
+<div class='tabs'>
+<button class='tab active'onclick="showPanel('overview')">Overview</button>
+<button class='tab'onclick="showPanel('constraints')">Constraints</button>
+<button class='tab'onclick="showPanel('navigation')">Navigation</button>
+<button class='tab'onclick="showPanel('commands')">Commands</button>
+<button class='tab'onclick="showPanel('glossary')">Glossary</button>
+<button class='tab'onclick="showPanel('personas')">Personas</button>
+</div>
+<div id='overview' class='panel active'>
+<h2>Encoded Projects</h2>
+<div class='card'>
+<h3>mercenary-app|developer-tools|standard|Professional contractor tactical command center for strategi</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>DiskInventoryY|developer-tools|standard|High-performance disk space analyzer for macOS using parallel work-stealing|Reclaim disk space without waiting. Give users immediate, actionable insight into what is consuming their storage. Flip the scanning model from exhaustive-then-display to progressive-and-smart.</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>Taper|healthcare|safety-critical|Privacy-first desktop application for tracking medication tapering schedules with precise dosage calculations.|Give people autonomy over their medication journey by providing structured, evidence-based tapering support with precision dosage calculations, local-only data storage, and holistic replacement therapy suggestions.</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>Hermes|browser-automation|security-sensitive|AI-driven human-embodied browser automation framework achiev</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>socratic-tuner|ai-research|experimental|Desktop application for Socratic finetuning of LLMs with real-time neur</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>macos-memory-monitor|developer-tools|standard|Detailed macOS memory analysis library with ML process detection, </h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>uri integration and a Svelte UI component.</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>Criterion|ai-creative-analysis|standard|Adversarial multi-agent screenplay analysis engine running on 8xB200 GPU cluster, with investor pitch materials for Cinema (AGI.film).|A self-improving adversarial refinement engine for screenplay analysis that compounds insight over iterations. Uses collaborative peer agents (DeepSeek R1, Jamba 1.7, Llama 3.3) on 8xB200 GPUs. Architecture beats model capability: eight 82% models with debate structure outperform one 92% model single-pass. Also houses Cinema (AGI.film</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>) Series A fundraising materials.</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>fifth|developer-tools|standard|Practical Forth libraries for building real applications with Gforth.|Bring Forth into modern development with composable libraries for strings, HTML generation, SQLite access, templating, and UI components. No external dependencies beyond Gforth and standard Unix tools.</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+<div class='card'>
+<h3>fast-forth|developer-tools|standard|High-performance Forth compiler targeting native machine code via Cranelift JIT and LLVM backends.|Fast Forth is a modern optimizing Forth compiler achieving C-level performance (80-100%) through Cranelift/LLVM backend integration, Hindley-Milner type inference, and stack-oriented optimizations. Supports both AOT compilation and JIT execution with compile times under 100ms. Goal: native Forth execution for llama CLI with &lt;10ms startup.</h3>
+<p><span class='badge bg-primary'></span><span class='badge bg-danger'></span></p><p></p><p class='subtitle'></p>
+</div>
+</div>
+<div id='constraints' class='panel'>
+<h2>Project Constraints</h2>
+<table class='table'>
+
+<thead>
+<tr><th>Severity</th><th>Type</th><th>Constraint</th></tr>
+</thead>
+<tbody>
+<tr><td><span class='badge bg-warning'>suggested|preference|Prefer percentage-based tapers for long-term reductions.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Prefer conservative taper recommendations. Default to slower rates when uncertain.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Prefer simplicity over completeness. Every UI element must justify its cognitive cost.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Authentic mistakes </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|DA signal formula: 0.5*quality + 0.3*novelty + 0.2*coherence</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Emergent dimensions threshold for creation: DA &gt; 0.6, residual magnitude above threshold, </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Process grouping: group Chrome tabs, Node.js, </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Only show processes/groups &gt; 300MB in active memory analysis</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Cap kernel memory estimate at 8GB to avoid unrealistic values</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Investor materials are confidential. Only distribute under NDA.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Prefer Cranelift backend for JIT, LLVM for full AOT optimization</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Use feature</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>suggested|preference|Target &lt;10ms startup time for llama CLI integration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ALWAYS use mercenary-aligned terminology in UI: contracts, targets, capabilities, pipeline, scan, reconnaissance.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ALWAYS use Result&lt;T, E&gt; for Rust error handling.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ALWAYS derive</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ALWAYS run cargo clippy before committing Rust changes.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|preference|UI should be tactical/professional aesthetic, not consumer-friendly softness.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|preference|UI should be information dense - operators value data over whitespace.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|preference|Use dark theme</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|preference|Minimal dependencies - Fewer dependencies means faster builds and smaller binaries. Prefer standard library solutions.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|prohibition|No mocking of</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Benchmark before and after any change to hot paths.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Test with large directories (100,000+ files).</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|UI must remain responsive during background scanning.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Memory usage must remain bounded regardless of file count.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Time to first</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Deletions always go to Trash (recoverable), not permanent removal.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|System directories must be protected from deletion.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|MUST use 3 decimal places minimum (0.001mg) for all dosage precision.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|MUST include medical disclaimers on all protocol and recommendation screens.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|MUST meet WCAG 2.1 Level AA accessibility standards.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|MUST use database transactions for all dose logging + inventory update operations.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|MUST warn when taper reduction rate exceeds clinical guidelines.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|MUST encrypt sensitive fields at rest using AES-256-</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|MUST support dose confirmation in maximum 2 clicks from app launch.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Use pure CDP protocol via system Chrome binary - no bundled Chromium</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|AI cost MUST remain below $0.50 per 1,000 actions using tiered 80/15/5 decision model</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Context creation MUST be under </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Typing speed MUST average 36.2 WPM with 2.3% error rate matching CMU dataset</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|preference|Prefer Rust for all new implementation; codebase migrating from TypeScript to Rust workspace</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Mouse movement MUST follow Fitts&#39;s Law with human tremor (8-15 Hz, 1-3px) and overshoot</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Power Law of Learning: personas get 40% faster after 10 visits to same site</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Environment variable MLX_FORK_PATH must point to mlx-fork/mlx-lm for real model usage</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ADAPTERS_PATH</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|emergent-mind</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|macos-memory-monitor crate must be at /Users/joshkornreich/packages/macos-memory-monitor</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|preference|Neurotransmitter zone mapping: 80 layers to 6 biological systems (GLU 0-9, GABA 10-19, NE 20-34, ACh 35-49, 5-HT 50-64, DA 65-79)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|preference|Color scheme is fixed: Dopamine=#FFD700, GABA=#4169</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ML process detection threshold is </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Apple Silicon</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ML process memory must be moved from inactive to active category in MemoryStats</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Tauri commands must be behind the &quot;tauri&quot; feature flag</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|All public types must derive Serialize and Deserialize</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Quality comes</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Self-improvement loop: Protocol vN produces analysis, self-critique finds weakness</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|prohibition|DO NOT re-explore dead ends: tiered model architectures, what model is good enough </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Use prefix caching for screenplay content shared across agents (~25x less input </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Think in pipelines, not single armies. Armies can analyze other armies outputs.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|User knows more about this domain than the model. Trust corrections. Communication style: direct, expects precision.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|prohibition|Do not assume</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|prohibition|Do not use popen on macOS </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|prohibition|Do not use C bindings - shell-out pattern only (SQLite via sqlite3 CLI)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Every .fs file must start with a comment block: \ fifth/path/file.fs - Description</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Words must be</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|HTML escaping</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Compilation time must be under 100ms for typical programs</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Runtime performance must achieve 80-100% of equivalent C code</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Stack calling</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|ANS Forth compliance for standard syntax</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Workspace crate structure: frontend, backend, optimizer as separate crates</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|SSA intermediate representation for optimization passes</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>strong|requirement|Three-tier IR: HIR (high-level) -&gt; MIR (mid-level SSA) -&gt; LIR (low-level register)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER create demo/sample/mock/placeholder data. Real database or empty state only.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER use &quot;jobs&quot; terminology - use &quot;contracts&quot; or &quot;opportunities&quot; instead.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER use &quot;companies&quot; terminology - use &quot;targets&quot; or &quot;clients&quot; instead.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER use &quot;applications&quot; terminology - use &quot;pipeline&quot; instead.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER add cloud features or telemetry. This is local-first.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER create fake metrics</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER describe user as &quot;job seeker&quot; - they are a &quot;professional operator&quot; or &quot;mercenary&quot;.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER hardcode API keys or sensitive data.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Performance</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Show results immediately - Users should see meaningful data within 2 seconds. Stream</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Parallel everything - Use Rayon for CPU-bound work, spawn_blocking for I/O. Never bloc</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|No blocking</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|No panics in library code - use explicit error handling with </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|No network access required or performed.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER make network requests. Application must function identically with network disabled. Zero </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER provide medical advice. All suggestions must be clearly labeled as informational. Defer to prescribers.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER use floating-point arithmetic for dosage calculations. Must use rust</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER block</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER store</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER position Taper as sufficient for tapering without medical support.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER sell supplements or earn affiliate commissions. Recommendations based solely on evidence.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|All browser</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Detection evasion MUST target 85%+ success rate across detection services</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|All 17 detection vectors MUST be eliminated including CDP detection, perform</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Behavioral patterns MUST pass K-S statistical test (p &gt; 0.05) against human baselines</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Persona behavior MUST be non-deterministic and consistent with persona identity across session</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|MLX backend</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Rust 1.70+ required for Tauri backend</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Node.js 18+</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Tauri CLI 2.0+ required (not 1.x)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Process termination must check PID &gt; 1 and reject protected system processes (kernel_task, launchd, WindowServer, loginwindow, Finder)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Use SIGTERM</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Architecture provides quality, not model selection. The hierarchy is in task decompositio</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|NEVER use tiered model architectures (smaller models for extraction, bigger for reasoning). Every role needs frontier reasoning.</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Homogeneous</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Peer models</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|Never use allocate/free for strings - use static buffer pattern (str-reset/str+/str$)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|Never use raw for user data - text escapes by default, raw bypasses escaping</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|Never use s+ for string concatenation - causes memory errors. Always use buffer pattern</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|Never put single-quoted SQL literals in shell commands - conflicts with shell quoting</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|Never use include - use require to prevent double-loading</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|Never redefine standard Gforth words (emit-file, type, etc.)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|prohibition|Never nest operations on the same buffer - primary and secondary buffers must not conflict</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Every word must have stack comments: ( before -- after )</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-warning'>absolute|requirement|Use static buffers for all string operations (str-reset/str+/str$)</span></td><td><code></code></td><td></td></tr>
+</tbody>
+</table>
+
+</div>
+<div id='navigation' class='panel'>
+<h2>Key File Locations</h2>
+<table class='table'>
+
+<thead>
+<tr><th>Category</th><th>Path</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><span class='badge bg-info'>cli|src-tauri/src/cli.rs|CLI interface (optional)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>commands|src-tauri/src/commands/mod.rs|Tauri command hub</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>commands|src-tauri/src/commands/emergent.rs|Emergent mind model commands</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>commands|src-tauri/src/commands/generation.rs|MLX generation/inference commands</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>commands|src-tauri/src/commands/training_loop.rs|Training loop orchestration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>commands|src-tauri/src/commands/signals_integration.rs|Signal extraction integration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/routes/|Svelte page components</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/lib/|Shared Svelte components</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/lib/components/|Svelte UI components</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/lib/stores/|Svelte state stores</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-human/|Human behavior simulation (mouse, keyboard, timing)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-cdp/|Chrome DevTools Protocol client</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-persona/|Persona identity and management</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-ai/|AI decision engine</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-stealth/|Detection evasion and stealth injection</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-fingerprint/|Browser fingerprint management</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-launcher/|Browser launch and lifecycle</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-learning/|Learning and memory system</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-stream/|Event streaming</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-debug/|Debug tooling for Tauri/Svelte apps</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/workright-mcp/|MCP server integration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|crates/tauri-plugin-workright/|Tauri plugin for workright</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/components/SignalMonitor.svelte|Real-time neurotransmitter oscilloscope</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/components/DiscourseRunner.svelte|Chat interface for Socratic dialogues</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/components/EmergentMind.svelte|Emergent identity model viewer</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/components/EmergentModel.svelte|Emergent model stats and training UI</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/components/ServerControl.svelte|MLX server management</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|svelte/MemoryBar.svelte|Svelte UI component with memory bar, drill-down panels, kill buttons</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|lib/str.fs|String buffer system - foundation for all other libs</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|lib/html.fs|HTML5 tag</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|lib/sql.fs|SQLite shell interface</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|lib/template.fs|Deferred slots, conditional rendering, layouts</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|lib/ui.fs|Cards, badges, tabs, grids, dashboard components</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|frontend/src/|Frontend: lexer, parser, AST, SSA, type inference</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|backend/src/|Backend:</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|optimizer/src/|Optimizer: stack caching, constant folding, dead code, superinstructions</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|runtime/|C runtime: forth_runtime.c, memory.c, ffi.c, bootstrap.c</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|cli/|CLI tool: REPL, compiler, profiler, doc generator</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/patterns/|Pattern</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>components|src/inference/|Type inference engine</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|src-tauri/Cargo.toml|Rust</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|package.json|Node dependencies and scripts</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|src-tauri/tauri.conf.json|Tauri application configuration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|src-tauri/Cargo.toml|Rust</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|package.json|Frontend dependencies</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|src-tauri/tauri.conf.json|Tauri configuration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|package.json|Frontend dependencies and scripts</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|svelte.config.js|SvelteKit configuration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|vite.config.ts|Vite bundler configuration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|tailwind.config.js|TailwindCSS configuration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|Cargo.toml|Workspace root</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|package.json|Node.js dependencies and scripts</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|src-tauri/Cargo.toml|Rust</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|src-tauri/tauri.conf.json|Tauri application config</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|Cargo.toml|Rust crate config with optional tauri and sysinfo features</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|package.json|NPM package config - exports JS bindings and Svelte component</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|architecture/FLOWS.md|Model deployment flows for </span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|config/model-router.yaml|Model routing configuration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|Cargo.toml|Workspace root</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>config|Makefile|C runtime build system</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>core|src-tauri/src/lib.rs|Core scanning commands and Tauri handlers</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>core|src/analysis.rs|Memory analysis: parse_vm_stat, analyze_wired/active/ml/compressed/reclaimable/free</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>core|src/process.rs|Process detection: detect_ml_processes, classify_ml_process, terminate_process</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>crates|../crates/|Shared Rust crates (mercenary-identity, mlx-server, console-capture)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|../MANIFESTO.md|Philosophical foundation - mercenary identity</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|../corpus/PURPOSE.md|Mission and objectives</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|../corpus/THE_ART_OF_THE_MERCENARY.md|Identity voice and framing (103KB)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/ARCHITECTURE.md|Comprehensive architecture diagram</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|SPECIFICATION.md|Requirements and data structures</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|PURPOSE.md|Mission and value propositions</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|PURPOSE.md|Mission statement and guiding principles</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|INTENT.md|User personas, use cases, acceptance criteria</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|CONCEPTS.md|Domain model, glossary, data architecture</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|SPECIFICATION.md|Technical spec, API, data models, security</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|METHODS.md|Development setup and implementation guide</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|README.md|Project overview and status</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/SPECIFICATION.md|Full technical specification</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/WORKRIGHT_SPECIFICATION.md|Workright Rust framework specification</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/HERMES_PROMPT.md|Original vision and philosophy</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/QUICK_START.md|Quick start guide</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/architecture.md|System</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/THE_SOCRATIC_METHOD.md|Theoretical foundation</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/EMERGENT_MIND_MODEL.md|Emergent identity model specification</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|README.md|Project documentation with usage examples</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|methodology/docs/README.md|Coverage Orchestration Protocol overview</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|methodology/docs/ARCHITECTURE_HANDOFF.md|Full context handoff for the analytical engine design</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|methodology/docs/QUICK_START.md|Quick start guide for peer collaboration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|methodology/docs/COVERAGE_ORCHESTRATION_PROTOCOL.md|Full protocol specification</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|agents/AGENT_REGISTRY.md|Master registry of 68 functional agents</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|pitch/README.md|Cinema (AGI.film) Series A investor presentation suite</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|methodology/docs/PEER_AGENT_COLLABORATION_ARCHITECTURE.md|Peer agent collaboration architecture</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|methodology/art/FOUNDATION.md|Artistic foundation and intuitive synthesis</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|methodology/docs/HETEROGENEOUS_PIPELINE_ARCHITECTURE.md|Reference architecture (superseded by pe</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|architecture/benchmark/|Benchmark architecture and analysis prompts</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|CLAUDE.md|AI collaboration guidelines, core principles, critical knowledge</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|README.md|Project overview,</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|docs/ARCHITECTURE.md|Master</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>docs|ROADMAP.md|Implementation phases and next steps</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src-tauri/src/lib.rs|Main Tauri commands and IPC handlers</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/main.ts|Frontend</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src-tauri/src/main.rs|Tauri application entry point</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src-tauri/src/main.rs|Rust/Tauri application entry point</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/routes/+layout.svelte|Svelte root layout</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/routes/+page.svelte|Dashboard / main page</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|workright/src/lib.rs|Main workright library entry point</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|hermes-rust/|Hermes Rust application (Tauri desktop app)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/main.js|Svelte frontend entry point</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/App.svelte|Main application component</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src-tauri/src/main.rs|Tauri Rust entry point</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src-tauri/src/lib.rs|Rust library root with command registration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/lib.rs|Main library entry - MemoryMonitor struct with public API</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|corpus/app/|React+Vite corpus viewer app</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|lib/core.fs|Main entry point - loads str + html + sql + utilities</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/main.rs|Main binary entry point (fastforth CLI)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/lib.rs|Library root - exports compiler pipeline</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>entry_point|src/bin/fastforth-server.rs|HTTP server binary (optional)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>examples|examples/db-viewer.fs|Dual-database flat HTML viewer</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>examples|examples/project-dashboard.fs|Tabbed dashboard with 6 panels</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>external|../disk_scanner_rs/|External crate for Rayon-based parallel scanning</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>feature|src-tauri/src/suggestions.rs|Cleanup heuristics and pattern matching</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>feature|src-tauri/src/gpu_treemap.rs|GPU-accelerated treemap rendering</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>frontend|js/index.ts|TypeScript bindings for Tauri invoke calls</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>frontend|js/internal.ts|Internal</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>frontend_entry|src/main.ts|Frontend entry and event handling</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>integration|src/tauri_commands.rs|Tauri IPC command bindings (feature-gated)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>safety_critical|src-tauri/src/domain/taper.rs|Tapering calculation engine with safety guardrails</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>safety_critical|src-tauri/src/domain/dosage.rs|Decimal-precision dosage calculations</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>safety_critical|src-tauri/src/domain/validation.rs|Input validation for medical data</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>schema|src-tauri/migrations/|SQLite database migrations</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>schema|migrations/|SQL migration</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>schema|src-tauri/src/mlx.rs|MLX server management and process control</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|tests/|E2E Playwright tests</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|src-tauri/tests/|Rust integration tests</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|tests/|Python integration tests (pytest)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|experiments/results/|Screenplay analysis experiment results</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|tests/|Integration, stress, compliance</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|frontend/tests/|Frontend parser and SSA tests</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|backend/tests/|Backend codegen, FFI, calling convention tests</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>tests|fuzz/|Fuzzing infrastructure and property-based tests</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>types|src-tauri/src/types.rs|Core data structures: ScanEntry, DirNode, PriorityRule, CacheEntry</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>types|src/lib/neurotransmitters.js|NT zone definitions and colors</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>types|src/lib/api.js|Tauri command wrappers</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>types|src/lib/stores.js|Svelte stores (app state)</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>types|src/types.rs|All data types: MemoryStats, MLProcess, MemoryContributor, WiredMemoryAnalysis, MemoryCategoryAnalysis</span></td><td><code></code></td><td></td></tr>
+<tr><td><span class='badge bg-info'>visualization|src/gpu-treemap.ts|WebGL treemap visualization</span></td><td><code></code></td><td></td></tr>
+</tbody>
+</table>
+
+</div>
+<div id='commands' class='panel'>
+<h2>Build &amp; Development Commands</h2>
+<table class='table'>
+
+<thead>
+<tr><th>Name</th><th>Command</th><th>Category</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>adversarial|/adversarial|analysis</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>coverage|/coverage screenplay.pdf|analysis</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>thorough|/coverage screenplay.pdf --quality thorough --max-rounds 7|analysis</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build|npm run tauri build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build|pnpm tauri:build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build|cargo build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build|npm run tauri build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build|cargo build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build|cargo build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-cli|cd cli &amp;&amp; cargo build --release|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-cranelift|cargo build --features cranelift|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-dev|cd src-tauri &amp;&amp; cargo build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-distributable|cargo tauri build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-llvm|cargo build --features llvm|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-release|cd src-tauri &amp;&amp; cargo build --release|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-release|cargo build --release|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-release|cargo build --release|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-tauri|cargo build --features tauri|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-ts|npm run build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>build-ui|cd hermes-rust/hermes-ui &amp;&amp; npm run tauri build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>cargo-build|cd src-tauri &amp;&amp; cargo build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>check|cargo check|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>frontend-build|tsc &amp;&amp; vite build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>frontend-build|npm run build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>vite-build|npm run build|build</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>debug-mode|DISK_INVENTORY_DEBUG=1 cargo tauri dev|debug</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>profile|cargo flamegraph|debug</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>migrate|sqlx migrate run|deploy</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>debug-run|gforth -e &quot;include ~/fifth/examples/project-dashboard.fs&quot;|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>dev|pnpm tauri:dev|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>dev|npm run tauri dev|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>dev-ui|cd hermes-rust/hermes-ui &amp;&amp; npm run tauri dev|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>dev:frontend|pnpm dev|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>frontend-dev|npm run dev|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>interactive|gforth ~/fifth/lib/core.fs|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>mlx-server|python3 -m mlx_lm.server --model &lt;model_path&gt; --port 8080|dev</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>dev|npm run tauri dev|development</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>dev|cargo tauri dev|development</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>frontend-dev|vite|development</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>preview|npm run preview|development</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>vite-dev|npm run dev|development</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>fmt|cargo fmt|format</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>format|cargo fmt &amp;&amp; pnpm format|format</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>clean|cargo clean &amp;&amp; make clean|general</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>serve-all|model-architect serve-multi deepseek-r1-fp8 llama-3.3-70b-fp8 jamba-1.7-fp8|infrastructure</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>serve-jamba|model-architect serve jamba-1.7-fp8 --port 8002|infrastructure</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>serve-llama|model-architect serve llama-3.3-70b-fp8 --port 8001|infrastructure</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>serve-r1|model-architect serve deepseek-r1-fp8 --tp 8 --port 8000|infrastructure</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>cargo-check|cd src-tauri &amp;&amp; cargo check|lint</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>check|cargo clippy|lint</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>clippy|cd src-tauri &amp;&amp; cargo clippy|lint</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>clippy|cargo clippy|lint</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>lint:backend|cargo clippy -- -D warnings|lint</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>lint:frontend|pnpm lint|lint</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>typecheck|pnpm check|lint</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>peers|/peers|monitoring</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>collaborate|/collaborate|orchestration</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>facilitate|/facilitate|orchestration</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>execute|./target/release/fastforth execute &quot;10 2</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>run-dashboard|gforth ~/fifth/examples/project</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>run-db-viewer|gforth ~/fifth/examples/db-viewer.fs|run</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>install|npm install|setup</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>install-linux|apt install gforth</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>install-macos|brew install gforth sqlite|setup</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>npm-install|npm install|setup</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>bench|cargo bench|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>coverage|make coverage|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test|npm run test|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test|cd src-tauri &amp;&amp; cargo test|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test|cargo test|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test|cargo test|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test|cargo test|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test-integration|cd tests &amp;&amp; python run_integration_tests.py|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test-run|npm run test:run|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test-runtime|make test|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test:a11y|pnpm a11y|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test:backend|cargo test -p taper-app|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test:e2e|pnpm test:e2e|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+<tr><td><strong>test:frontend|pnpm test|test</strong></td><td><code></code></td><td><span class='badge bg-success'></span></td></tr>
+</tbody>
+</table>
+
+</div>
+<div id='glossary' class='panel'>
+<h2>Domain Terminology</h2>
+<div class='grid-auto'>
+<div class='card'>
+<span class='term'>ANS Forth|American National Standard for Forth (ANSI X3.215-1994)</span><p></p></div>
+<div class='card'>
+<span class='term'>Active memory|Memory recently used by applications</span><p></p></div>
+<div class='card'>
+<span class='term'>Adversarial Refinement|Self-improvement loop where analyses are challenged, defended, and refined throu</span><p></p></div>
+<div class='card'>
+<span class='term'>Analytical Engine|The self-improving adversarial refinement engine - general purpose, not just screenplay analysis</span><p></p></div>
+<div class='card'>
+<span class='term'>Aporia|State of genuine not-knowing in Socratic dialogue. The turning point where new understanding can emerge.</span><p></p></div>
+<div class='card'>
+<span class='term'>Army|A full set of ~137 agents executing one complete analysis pass across all 6 layers</span><p></p></div>
+<div class='card'>
+<span class='term'>Bloat Directories|Known locations where temporary, cached, or build-related files accumulate (node_modules, DerivedData, Caches)</span><p></p></div>
+<div class='card'>
+<span class='term'>Bounded Memory Model|Scanning strategy limiting memory consumption regardless of filesystem size</span><p></p></div>
+<div class='card'>
+<span class='term'>CDP|Chrome DevTools Protocol - wire protocol for Chrome/Chromium browser control</span><p></p></div>
+<div class='card'>
+<span class='term'>CacheEntry|Persisted scan result</span><p></p></div>
+<div class='card'>
+<span class='term'>Cinema / AGI.film|AI filmmaking platform company; target $10-15M Series A at $100-150M pre-money</span><p></p></div>
+<div class='card'>
+<span class='term'>Circuit breaker|Auto-kill protection in the Svelte component when memory pressure exceeds threshold</span><p></p></div>
+<div class='card'>
+<span class='term'>Compressed memory|Memory compressed in RAM by macOS to save space (faster than swap)</span><p></p></div>
+<div class='card'>
+<span class='term'>Consolidation weight|How strongly a turn&#39;s learning should be consolidated into adapter weights, derived from signal quality.</span><p></p></div>
+<div class='card'>
+<span class='term'>Coverage|Comprehensive screenplay analysis protocol using peer agent collaboration</span><p></p></div>
+<div class='card'>
+<span class='term'>Coverage-Based Aggregation|Memory-bounding technique that collapses items outside top 95-97% to limit result size</span><p></p></div>
+<div class='card'>
+<span class='term'>Cranelift|Rust-native code generator for JIT compilation, part of Wasmtime project</span><p></p></div>
+<div class='card'>
+<span class='term'>Cross-taper|Switching from one medication to another during reduction</span><p></p></div>
+<div class='card'>
+<span class='term'>DA (Dopamine-analog)|Quality feedback signal: 0.5*quality + 0.3*novelty + 0.2*coherence. Drives emerg</span><p></p></div>
+<div class='card'>
+<span class='term'>Delta|Change in signal values between turns. Positive delta in DA = learning/improvement.</span><p></p></div>
+<div class='card'>
+<span class='term'>Delta Scanning|Technique for rapid rescans by detecting which directories have changed since the last scan</span><p></p></div>
+<div class='card'>
+<span class='term'>Detection Vector|Specific signal</span><p></p></div>
+<div class='card'>
+<span class='term'>Dictionary|Global symbol table mapping word names to compiled implementations</span><p></p></div>
+<div class='card'>
+<span class='term'>Discontinuation Syndrome|Symptoms occurring when stopping or reducing medication too quickly</span><p></p></div>
+<div class='card'>
+<span class='term'>Discourse|A conversation session</span><p></p></div>
+<div class='card'>
+<span class='term'>Dose Split|Division of daily dose across multiple administration times (e.g., 60/40 morning/evening)</span><p></p></div>
+<div class='card'>
+<span class='term'>Emergent Identity Model|Self-organizing model that discovers concepts, dimensions, and connections from d</span><p></p></div>
+<div class='card'>
+<span class='term'>Equivalent Dose|Amount of one medication providing similar therapeutic effect to another</span><p></p></div>
+<div class='card'>
+<span class='term'>F-Pattern|Eye-tracking reading pattern: horizontal scan at top, then down left side. 57% attention on </span><p></p></div>
+<div class='card'>
+<span class='term'>Fitts&#39;s Law|MT = a + b × log₂(2D/W + 1</span><p></p></div>
+<div class='card'>
+<span class='term'>HIR|High-level IR: preserves Forth semantics</span><p></p></div>
+<div class='card'>
+<span class='term'>Half-life|Time for blood concentration to reduce by 50%; affects withdrawal onset</span><p></p></div>
+<div class='card'>
+<span class='term'>Heuristic Scanning|Scanning strategy that uses rules of thumb rather than exhaustive enumeration, priorit</span><p></p></div>
+<div class='card'>
+<span class='term'>Hold Period|Planned pause in taper schedule to stabilize at current dose</span><p></p></div>
+<div class='card'>
+<span class='term'>Human Tremor|Natural hand micro-movements at 8-15 Hz, 1-3px amplitude, simulated with Perlin noise</span><p></p></div>
+<div class='card'>
+<span class='term'>Hyperbolic Taper|Percentage-based reduction creating curve that matches receptor sensitivity</span><p></p></div>
+<div class='card'>
+<span class='term'>Inactive memory|Memory not recently used, kept as cache, reclaimable on demand</span><p></p></div>
+<div class='card'>
+<span class='term'>K-S Test|Kolmogorov-Smirnov test</span><p></p></div>
+<div class='card'>
+<span class='term'>KV Cache|Key-Value cache storing</span><p></p></div>
+<div class='card'>
+<span class='term'>KV cache|Key-Value cache from transformer attention layers. Used as working memory and source of neurotransmitter signal extraction.</span><p></p></div>
+<div class='card'>
+<span class='term'>LIR|Low-level IR: register-based, maps directly to LLVM IR or native code</span><p></p></div>
+<div class='card'>
+<span class='term'>LoRA adapter|Low-Rank Adaptation</span><p></p></div>
+<div class='card'>
+<span class='term'>MIR|Mid-level IR: SSA form with explicit stack operations, main optimization target</span><p></p></div>
+<div class='card'>
+<span class='term'>ML process|Python ML scripts, MLX servers, Ollama, llama.cpp - processes using &gt;500MB for machine learning</span><p></p></div>
+<div class='card'>
+<span class='term'>MLA|Multi-Head Latent Attention:</span><p></p></div>
+<div class='card'>
+<span class='term'>MLX|Apple&#39;s machine learning framework for Apple Silicon. Backend for model inference via mlx-fork.</span><p></p></div>
+<div class='card'>
+<span class='term'>Micro-taper|Reduction rate of &lt;5% per step, often requiring compounding or liquid formulation</span><p></p></div>
+<div class='card'>
+<span class='term'>MoE|Mixture of Experts: only a subset of parameters activate per token</span><p></p></div>
+<div class='card'>
+<span class='term'>Neurotransmitter signals|Six biological-analog signals (Dopamine, GABA, NE, ACh, Serotonin, Glutamate) extracted f</span><p></p></div>
+<div class='card'>
+<span class='term'>Offset|Cumulative deviation from</span><p></p></div>
+<div class='card'>
+<span class='term'>PGO|Profile-Guided Optimization:</span><p></p></div>
+<div class='card'>
+<span class='term'>PRN|Pro Re Nata - medication taken as needed based on symptoms</span><p></p></div>
+<div class='card'>
+<span class='term'>Peer Agent|A collaborative LLM instance </span><p></p></div>
+<div class='card'>
+<span class='term'>Persona|Complete human identity profile with behavioral characteristics, cognitive traits, and session memory driving all automation</span><p></p></div>
+<div class='card'>
+<span class='term'>Power Law of Learning|T = a × N^(-b) - humans improve at repeated tasks following power curve</span><p></p></div>
+<div class='card'>
+<span class='term'>Prefix Caching|Caching shared input once so agents only process unique instruction tokens</span><p></p></div>
+<div class='card'>
+<span class='term'>PriorityRule|Glob pattern with priority score determining scan order (e.g., Caches=100, node_modules=90)</span><p></p></div>
+<div class='card'>
+<span class='term'>Progressive Disclosure|UI pattern where results appear incrementally as they become available, rather than waiting for complete data</span><p></p></div>
+<div class='card'>
+<span class='term'>Protocol Delta|The difference between protocol version N and N+1, incorporating learnings from adversarial pressure</span><p></p></div>
+<div class='card'>
+<span class='term'>Rebound|Temporary return of symptoms, often stronger, when dose is reduced</span><p></p></div>
+<div class='card'>
+<span class='term'>Reclaim verdict|Classification of whether memory can be freed: no/partial/yes/auto/available/useful/stale</span><p></p></div>
+<div class='card'>
+<span class='term'>Replacement Therapy|Non-pharmaceutical interventions targeting similar neurotransmitter systems</span><p></p></div>
+<div class='card'>
+<span class='term'>Scan Priority Queue|Data structure maintaining directories ordered by estimated likelihood of containin</span><p></p></div>
+<div class='card'>
+<span class='term'>Shortage Alert|Warning when projected supply will run out before next fill date</span><p></p></div>
+<div class='card'>
+<span class='term'>Size Convergence|Process by which displayed sizes become more accurate over time as scanning progress</span><p></p></div>
+<div class='card'>
+<span class='term'>Socratic finetuning|Experimental</span><p></p></div>
+<div class='card'>
+<span class='term'>Space Hogs|Files or directories consuming disproportionate disk space - primary targets for identification</span><p></p></div>
+<div class='card'>
+<span class='term'>Stack caching|Optimization keeping top N stack elements in CPU registers instead of memory</span><p></p></div>
+<div class='card'>
+<span class='term'>Stack effect|Type signature of a</span><p></p></div>
+<div class='card'>
+<span class='term'>Stale model cache|Inactive memory occupied by previously-loaded ML model weights no longer in use</span><p></p></div>
+<div class='card'>
+<span class='term'>Stealth Injection|JavaScript injected before page load to remove CDP traces and spoof browser APIs</span><p></p></div>
+<div class='card'>
+<span class='term'>Steering vector|Direction in activation space used to guide model generation. Produced by emergent i</span><p></p></div>
+<div class='card'>
+<span class='term'>Stepped Taper|Discrete reduction</span><p></p></div>
+<div class='card'>
+<span class='term'>Superinstruction|Combined instruction replacing frequent instruction sequences (e.g., DUP+)</span><p></p></div>
+<div class='card'>
+<span class='term'>Taper|Gradual, controlled reduction of medication dosage over time to minimize withdrawal symptoms</span><p></p></div>
+<div class='card'>
+<span class='term'>Tensor Parallel (TP)|Distributing model weights across GPUs</span><p></p></div>
+<div class='card'>
+<span class='term'>Threaded code|Fast-compile backend using jump tables or function pointers</span><p></p></div>
+<div class='card'>
+<span class='term'>Three-Phase Streaming|Scan approach: (1) directory listing ~10ms, (2) shallow scan ~200ms, (3) deep parallel scan ~4-5s</span><p></p></div>
+<div class='card'>
+<span class='term'>Tiered Decision Model|80% heuristics / 15% lightweight AI / 5% complex AI for cost optimization</span><p></p></div>
+<div class='card'>
+<span class='term'>TopologyNode|Core data structure</span><p></p></div>
+<div class='card'>
+<span class='term'>Turn|Single exchange: user prompt + model response + extracted signals. Atom of learning.</span><p></p></div>
+<div class='card'>
+<span class='term'>Unified memory|Apple Silicon architecture where CPU and GPU share the same memory pool</span><p></p></div>
+<div class='card'>
+<span class='term'>Volumetric Dosing|Dissolving medication in liquid to measure precise small doses</span><p></p></div>
+<div class='card'>
+<span class='term'>Wired memory|Memory locked in RAM by kernel, drivers, and GPU - cannot be paged out</span><p></p></div>
+<div class='card'>
+<span class='term'>Word|Named subroutine in Forth, defined with : name ... ;</span><p></p></div>
+<div class='card'>
+<span class='term'>Work-Stealing|Rayon parallelism pattern where idle workers steal tasks from busy ones for efficient load balancing</span><p></p></div>
+<div class='card'>
+<span class='term'>Zone mapping (V8)|Standard mapping of 80 transformer layers to 6 neurotransmitter zones.</span><p></p></div>
+<div class='card'>
+<span class='term'>capabilities|Skills and expertise in the operator arsenal (NEVER just &quot;skills&quot;)</span><p></p></div>
+<div class='card'>
+<span class='term'>capability mapping|Tracking skills against market demand for strategic positioning</span><p></p></div>
+<div class='card'>
+<span class='term'>command center|The application itself - NOT a job board</span><p></p></div>
+<div class='card'>
+<span class='term'>contracts|Work engagements or opportunities (NEVER &quot;jobs&quot;)</span><p></p></div>
+<div class='card'>
+<span class='term'>effective hourly rate|Total revenue / total hours (including non-billable)</span><p></p></div>
+<div class='card'>
+<span class='term'>honest metrics|Real data only - show nothing rather than fabricated numbers</span><p></p></div>
+<div class='card'>
+<span class='term'>html-head|Opens HTML document leaving head open for style injection</span><p></p></div>
+<div class='card'>
+<span class='term'>local-first|All data stays on user machine. No cloud uploads. No telemetry.</span><p></p></div>
+<div class='card'>
+<span class='term'>mercenary|A skilled professional</span><p></p></div>
+<div class='card'>
+<span class='term'>pipeline|Active opportunities being pursued (NEVER &quot;applications&quot;)</span><p></p></div>
+<div class='card'>
+<span class='term'>pipeline coverage ratio|Active pipeline value / next quarter revenue needs (target: 3x)</span><p></p></div>
+<div class='card'>
+<span class='term'>raw|Unescaped HTML output word -</span><p></p></div>
+<div class='card'>
+<span class='term'>rebrowser-patches|Open-source CDP Runtime.enable detection fix for Playwright (baseline 70% evasion)</span><p></p></div>
+<div class='card'>
+<span class='term'>reconnaissance|Research and browse for intelligence (NEVER &quot;browse&quot;)</span><p></p></div>
+<div class='card'>
+<span class='term'>require|Forth word that loads a file only once (prevents double-loading)</span><p></p></div>
+<div class='card'>
+<span class='term'>scan|Search for opportunities (NEVER just &quot;search&quot;)</span><p></p></div>
+<div class='card'>
+<span class='term'>shell-out|Pattern of executing external CLI tools instead of using </span><p></p></div>
+<div class='card'>
+<span class='term'>slot|Deferred execution point in</span><p></p></div>
+<div class='card'>
+<span class='term'>sql-exec|Shells out to sqlite3 CLI and captures results to temp file</span><p></p></div>
+<div class='card'>
+<span class='term'>sql-field|Extracts nth field from pipe-delimited SQL result row</span><p></p></div>
+<div class='card'>
+<span class='term'>stack effect|Comment documenting</span><p></p></div>
+<div class='card'>
+<span class='term'>str-buf|Primary static string buffer for general string building</span><p></p></div>
+<div class='card'>
+<span class='term'>str2-buf|Secondary static string</span><p></p></div>
+<div class='card'>
+<span class='term'>targets|Potential clients or companies to work with (NEVER &quot;companies&quot; when describing prospects)</span><p></p></div>
+<div class='card'>
+<span class='term'>text|HTML-escaped output word - safe for user data</span><p></p></div>
+<div class='card'>
+<span class='term'>three-pass protocol|Identity adoption: 1) MANIFESTO.md (skeleton), 2) THE_ART_OF_THE_MERCENARY.md (fl</span><p></p></div>
+<div class='card'>
+<span class='term'>vm_stat|macOS command that reports virtual memory statistics including page counts by category</span><p></p></div>
+<div class='card'>
+<span class='term'>win rate|Success ratio on contracts pursued (NEVER &quot;success rate&quot;)</span><p></p></div>
+<div class='card'>
+<span class='term'>word|A named subroutine in Forth, defined with : name ... ;</span><p></p></div>
+<div class='card'>
+<span class='term'>workright|Rust implementation name for Hermes - pure CDP browser automation with human simulation</span><p></p></div>
+</div>
+</div>
+<div id='personas' class='panel'>
+<h2>User Personas</h2>
+<div class='card'>
+<h3>Technical Mercenary|Skilled freelance developer</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Claude Agent|AI collaborator operating under mercenary identity. Must internalize terminology and principles. Cannot create fake data.|Support operator with tactical intelligence. Maintain mercenary terminology. Respect local-first architecture. Provide honest metrics only.|Context drift requiring identity re-adoption. Instinct to create demo data. Default job-board language patterns.</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Developer|Software developer with large codebases and build artifacts|Instantly find bloated node_mo</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>General User|Non-technical user needing to free disk space|See where space is going without technical knowledge; One-click cleanup of obvious waste|Confusion about what files are safe to delete; Fear of breaking the system</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Power User|Technical user wanting automation and speed|Fast rescans with intelligent caching; Comman</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Disk-Constrained User|User with nearly-full drive needing immediate action|</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Sarah Chen - Self-Advocate|Tech-savvy patient tapering clonazepam with psychiatrist support. Needs pr</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Marcus Williams - Caregiver|Retired teacher managing elderly mother&#39;s Ativan taper. Moderate tech, ne</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Jamie Torres - ADHD Navigator|Young freelancer reducing Adderall, interested in replacement strategies. Needs minimal friction.|Reduce 30mg to 15mg over 6 months; track replacement strategies; visualize progress; flexible scheduling|ADHD makes tracking hard; forgets if dose taken; abandoned 3 apps; unsure about supplement interactions</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Dr. Rachel Okonkwo - Clinical Advisor|Psychiatrist specializing in deprescribing. Consumes patient exports, validates medical accuracy.|Clear adherence visualization; neurotransmitter context; pattern identification; one-screen monthly summary|Disorganized patient logs; apps show data in time-wasting formats; needs current dose + taper rate + deviations at a glance</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Automation Developer|Developer building browser automation that must evade advanced bot detection|Build automation evading Cloudflare, DataDome, PerimeterX|Current tools get detected; rebrowser-patches only 70% effective</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>QA Engineer|Quality assurance engineer needing realistic user simulation|Realistic user simulation for testing with di</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Security Researcher|Authorized penetration tester needing human-like traffic|Test WAF rules against r</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Data Collection Specialist|Professional needing large-scale web data collection|Large-scale collection with 85%+ success rate|High detection rates, expensive proxies, inconsistent sessions</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>AI Researcher|Researcher exploring Socratic finetuning as an alternative training paradigm.|Valid</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Socratic Teacher|User conducting</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Developer|Software developer extending or maintaining the application.|Add new features, fix bugs, understand the Tauri+Svelte+Rust architecture.|Complex cross-language architecture (JS/Rust/Python); external crate dependencies with absolute paths.</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Experiment Runner|User running structured V7 experiments to validate neurotransmitter hypotheses.|Execute experiment protocols and analyze results systematically.|Experiment infrastructure spans multiple subsystems; need MLX backend running for meaningful results.</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>ML Practitioner|Developer running ML models locally on Apple Silicon Mac|Understand memory consumption, deter</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Tauri App Developer|Developer building a desktop app with Tauri who needs memory monitoring|Integrate memory stats into Tauri app UI, use Svelte component, monitor app footprint|No turnkey macOS memory monitoring crate with Tauri bindings</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Power User|macOS user experiencing memory pressure wanting to understand RAM usage|Get clear breakdown of memory usage, identify reclaimable memory, safely terminate heavy processes|macOS memory categories are confusing, no actionable insight from standard tools</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Screenplay Analyst|Professional reader or development executive evaluating screenplays|Comprehensive, defensible screenplay analysis with character bibles and development notes|Time-consuming manual analysis; single-perspective blind spots</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Protocol Developer|Engineer building and refining the adversarial analysis protocol|Iterate protocol vers</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Cluster Operator|DevOps/ML engineer managing the 8xB200 GPU cluster|</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Investor|VC or entertainment investor evaluating Cinema/AGI.film|Understand market opportunity, financial projections, competitive moats|Information overload; validating AI claims vs reality</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Josh (Owner)|Project owner with deep domain expertise in adversarial AI architecture|Best-in-class protocol refinement. Direct, expects precision.|Models that don&#39;t understand the architecture is the capability, not model selection</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Forth developer|Experienced Forth programmer wanting modern libraries|Build real applications with Forth using composable, well-documented libraries|</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Systems minimalist|Developer seeking lightweight alternatives to heavy runtimes|Replace Python/Node scripts with 4.6MB Gforth runtime for HTML generation and data viewing|</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Dashboard builder|Developer creating HTML dashboards from SQLite data|Generate styled HTML reports and dashboards from database queries without heavy frameworks|</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Forth developer|Developer writing Forth programs who wants native performance|Compile and run Forth code at near-C </h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>llama CLI user|User of the llama</h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+<div class='card'>
+<h3>Compiler contributor|Developer contributing to the fast-forth compiler|Clear architecture, modular </h3>
+<p></p><p class='subtitle'><strong>Goals: </strong></p>
+<p class='subtitle'><strong>Pain Points: </strong></p>
+</div>
+</div>
+</main>
+
+</div>
+<script>function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

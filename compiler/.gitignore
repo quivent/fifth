@@ -1,0 +1,12 @@
+# Build artifacts
+target/
+tests/fuzz/target/
+fuzz/target/
+
+# Profiling
+*.profraw
+
+# macOS resource forks
+._*
+.DS_Store
+runtime/minimal_forth/forth

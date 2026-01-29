@@ -1,0 +1,95 @@
+//! Cranelift Backend for Fast Forth
+//!
+//! This module provides fast compilation through Cranelift code generator.
+//! Trade-off: 100x faster compilation (50ms vs 2-5min) with slightly lower
+//! runtime performance (70-90% of C vs LLVM's 85-110% of C).
+//!
+//! **Use Case**: Development builds (-O0, -O1) and optimized builds (-O2) for fast iteration
+//! **Not for**: Maximum optimization (use LLVM with -O3)
+
+mod compiler;
+mod translator;
+pub mod ffi;
+
+pub use compiler::{CraneliftBackend, CraneliftCompiler};
+pub use translator::SSATranslator;
+pub use ffi::{FFIRegistry, FFISignature};
+
+use crate::error::{BackendError, Result};
+use fastforth_frontend::ssa::{SSAFunction, SSAInstruction, Register, BlockId};
+
+/// Compilation settings for Cranelift
+#[derive(Debug, Clone, Copy)]
+pub struct CraneliftSettings {
+    /// Optimization level (0 = none, 1 = speed, 2 = speed_and_size)
+    pub opt_level: u8,
+    /// Enable debug info generation
+    pub debug_info: bool,
+    /// Target triple (defaults to host)
+    pub target_triple: Option<&'static str>,
+    /// Enable IR verification (disabled in release builds for performance)
+    pub enable_verification: bool,
+}
+
+impl Default for CraneliftSettings {
+    fn default() -> Self {
+        Self {
+            opt_level: 0,
+            debug_info: false,
+            target_triple: None,
+            // Enable verification in debug builds, disable in release builds
+            enable_verification: cfg!(debug_assertions),
+        }
+    }
+}
+
+impl CraneliftSettings {
+    /// Create settings for development builds (fast compilation)
+    pub fn development() -> Self {
+        Self {
+            opt_level: 0,
+            debug_info: true,
+            target_triple: None,
+            enable_verification: true,
+        }
+    }
+
+    /// Create settings for optimized development builds
+    pub fn optimized_dev() -> Self {
+        Self {
+            opt_level: 1,
+            debug_info: true,
+            target_triple: None,
+            enable_verification: true,
+        }
+    }
+
+    /// Create settings for maximum Cranelift optimization (speed_and_size)
+    pub fn maximum() -> Self {
+        Self {
+            opt_level: 2,
+            debug_info: false,
+            target_triple: None,
+            enable_verification: false, // Disable for maximum performance
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_settings() {
+        let settings = CraneliftSettings::default();
+        assert_eq!(settings.opt_level, 0);
+        assert!(!settings.debug_info);
+    }
+
+    #[test]
+    fn test_development_settings() {
+        let settings = CraneliftSettings::development();
+        assert_eq!(settings.opt_level, 0);
+        assert!(settings.debug_info);
+    }
+}

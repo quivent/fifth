@@ -5,18 +5,19 @@
 \ String Buffer
 \ ============================================================
 
-1024 constant str-max
+4096 constant str-max
 create str-buf str-max allot
 variable str-len
+variable str-overflow
 
-: str-reset ( -- ) 0 str-len ! ;
+: str-reset ( -- ) 0 str-len ! false str-overflow ! ;
 
 : str+ ( addr u -- )
-  \ Append string to buffer
+  \ Append string to buffer, set overflow flag if truncated
   dup str-len @ + str-max < if
     str-buf str-len @ + swap dup str-len +! move
   else
-    2drop
+    2drop true str-overflow !
   then ;
 
 : str$ ( -- addr u )
@@ -24,40 +25,57 @@ variable str-len
   str-buf str-len @ ;
 
 : str-char ( c -- )
-  \ Append single character
+  \ Append single character, set overflow flag if truncated
   str-len @ str-max < if
     str-buf str-len @ + c!
     1 str-len +!
   else
-    drop
+    drop true str-overflow !
   then ;
+
+: str-check ( -- )
+  \ Check for overflow, print warning if occurred
+  str-overflow @ if
+    ." WARNING: string buffer overflow, output truncated" cr
+  then ;
+
+: str-overflow? ( -- flag )
+  \ Query overflow state
+  str-overflow @ ;
 
 \ ============================================================
 \ Second String Buffer (for nested operations)
 \ ============================================================
 
-1024 constant str2-max
+4096 constant str2-max
 create str2-buf str2-max allot
 variable str2-len
+variable str2-overflow
 
-: str2-reset ( -- ) 0 str2-len ! ;
+: str2-reset ( -- ) 0 str2-len ! false str2-overflow ! ;
 
 : str2+ ( addr u -- )
+  \ Append string, set overflow flag if truncated
   dup str2-len @ + str2-max < if
     str2-buf str2-len @ + swap dup str2-len +! move
   else
-    2drop
+    2drop true str2-overflow !
   then ;
 
 : str2$ ( -- addr u ) str2-buf str2-len @ ;
 
 : str2-char ( c -- )
+  \ Append character, set overflow flag if truncated
   str2-len @ str2-max < if
     str2-buf str2-len @ + c!
     1 str2-len +!
   else
-    drop
+    drop true str2-overflow !
   then ;
+
+: str2-overflow? ( -- flag )
+  \ Query overflow state
+  str2-overflow @ ;
 
 \ ============================================================
 \ Line Buffer (for file I/O)

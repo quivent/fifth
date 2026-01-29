@@ -1,46 +1,129 @@
 # Fifth
 
-**Forth Libraries for the Fifth Age**
+**A practical Forth ecosystem with multiple execution backends.**
 
-A collection of practical Forth libraries for building real applications. No external dependencies beyond Gforth and standard Unix tools.
+Write Forth once, run it interpreted (fast startup) or compiled (native performance).
 
-## Philosophy
-
-- **Minimal dependencies**: Shell out to existing tools rather than require C bindings
-- **Proper escaping**: Security by default (HTML entities, SQL quoting)
-- **Stack-based DSLs**: Build vocabularies that make intent clear
-- **Composable**: Small words that combine into larger patterns
-- **16x lighter**: 4.6 MB runtime vs 76 MB for Python
-
-## Requirements
-
-[Gforth](https://gforth.org/) and `sqlite3` CLI.
+## Quick Start
 
 ```bash
-# macOS
-brew install gforth sqlite
+# Interpreter (fast startup, 5-15% of C)
+./fifth examples/project-dashboard.fs
 
-# Linux
-apt install gforth sqlite3
+# Compiler (native code, 70-85% of C)
+./fifth compile examples/project-dashboard.fs -o dashboard
+./dashboard
+
+# C codegen (planned, backend exists but not yet wired to CLI)
+# ./fifth --emit-c examples/project-dashboard.fs > dashboard.c
 ```
+
+## Architecture
+
+```
+                YOUR FORTH CODE
+                : square dup * ;
+                      │
+        ┌─────────────┼─────────────┐
+        ▼             ▼             ▼
+   ./fifth        ./fifth        ./fifth
+  (default)       compile       --emit-c
+        │             │             │
+        ▼             ▼             ▼
+   Threaded code  Cranelift     gcc/clang
+   Interpreter    JIT/AOT       → native
+   5-15% of C     70-85% of C   50-70% of C
+```
+
+Same `.fs` files work on all backends.
 
 ## Project Structure
 
 ```
 ~/fifth/
-├── lib/
-│   ├── str.fs          147 lines  String buffers, parsing, field extraction
-│   ├── html.fs         336 lines  HTML5 tags, escaping, document structure
-│   ├── sql.fs          152 lines  SQLite shell interface, result iteration
-│   ├── template.fs     123 lines  Slots, conditional rendering, layouts
-│   ├── ui.fs           261 lines  Cards, badges, tabs, grids, dashboards
-│   └── core.fs          67 lines  Loads all libraries + utilities
-├── examples/
-│   ├── db-viewer.fs    213 lines  Dual-database HTML viewer
-│   └── project-dashboard.fs
-│                       283 lines  Tabbed dashboard with panels
-└── README.md
-    Total:             1,582 lines
+├── fifth                    # Unified CLI wrapper
+├── engine/                  # C interpreter (57 KB, zero deps)
+│   ├── fifth.h              # Core types, VM struct
+│   ├── vm.c                 # Interpreter, dictionary
+│   ├── prims.c              # 164 primitives
+│   ├── io.c                 # File I/O, system
+│   ├── main.c               # Entry point
+│   └── boot/core.fs         # Forth bootstrap
+├── compiler/                # Rust compiler (Cranelift/LLVM)
+│   ├── frontend/            # Lexer, parser, SSA
+│   ├── optimizer/           # 5-pass optimization
+│   ├── backend/             # Cranelift, LLVM, C codegen
+│   └── runtime/             # C runtime library
+├── lib/                     # Forth libraries
+│   ├── core.fs              # Loads str+html+sql+template
+│   ├── str.fs               # String buffers, parsing
+│   ├── html.fs              # HTML5 generation, escaping
+│   ├── sql.fs               # SQLite CLI interface
+│   ├── template.fs          # Slots, deferred rendering
+│   └── ui.fs                # Dashboard components
+├── examples/                # Example applications
+│   ├── db-viewer.fs         # Database HTML viewer
+│   └── project-dashboard.fs # Tabbed dashboard
+├── tcc/                     # TinyCC docs (optional)
+└── docs/                    # Documentation
+```
+
+## Backends
+
+| Backend | Output | Toolchain | Compile | Speed vs C |
+|---------|--------|-----------|---------|------------|
+| **Interpreter** | — | None (C11) | <1ms | 5-15% |
+| **Cranelift JIT** | native | Rust (~400 MB) | ~50ms | 70-85% |
+| **LLVM AOT** | native | Rust+LLVM (~800 MB) | 50-100ms | 85-110% |
+| **C Codegen + clang** | native | clang | 10-20ms | 50-70% |
+| **C Codegen + tcc** | native | tcc (~200 KB) | 2-5ms | 40-50% |
+
+**When to use which:**
+- **Interpreter**: Development, scripting, small programs
+- **Cranelift**: Production binaries, fast compile cycle
+- **LLVM**: Maximum performance, distribution
+- **C Codegen**: Portability, embedding, no Rust needed
+
+## Building
+
+### Interpreter only (zero dependencies)
+
+```bash
+cd engine
+make
+./fifth ../examples/project-dashboard.fs
+```
+
+### Full toolchain (with compiler)
+
+```bash
+# Build interpreter
+cd engine && make && cd ..
+
+# Build compiler (requires Rust)
+cd compiler && cargo build --release --features cranelift && cd ..
+
+# Now use unified CLI
+./fifth examples/project-dashboard.fs          # interpret
+./fifth compile examples/project-dashboard.fs  # compile
+```
+
+## CLI Reference
+
+```
+INTERPRETER (default):
+  ./fifth program.fs           Execute Forth file
+  ./fifth -e "2 3 + ."         Execute one-liner
+  ./fifth                      Interactive REPL
+
+COMPILER:
+  ./fifth compile program.fs   Compile to native binary
+  ./fifth run program.fs       JIT execute
+  ./fifth repl                 Compiled REPL
+  ./fifth --emit-c program.fs  Emit C source
+
+OPTIONS:
+  --help, -h                   Show help
 ```
 
 ## Libraries
@@ -52,45 +135,13 @@ Buffer-based string operations without dynamic allocation.
 ```forth
 require ~/fifth/lib/str.fs
 
-\ Build strings in a static buffer (no malloc)
 str-reset
 s" Hello, " str+
 s" World!" str+
 str$ type  \ prints: Hello, World!
 
-\ Second buffer for nested operations
-str2-reset
-s" nested" str2+
-str2$ type
-
-\ Parse delimited data (pipe, tab, comma)
 s" apple|banana|cherry" 1 parse-pipe type  \ prints: banana
-s" one,two,three" 2 parse-comma type       \ prints: three
-
-\ Number to string
-42 n>str type  \ prints: 42
-
-\ String comparison
-s" hello" s" hello" str= .  \ prints: -1 (true)
 ```
-
-**Key words:**
-
-| Word | Stack | Description |
-|------|-------|-------------|
-| `str-reset` | ( -- ) | Clear primary buffer |
-| `str+` | ( addr u -- ) | Append to buffer |
-| `str$` | ( -- addr u ) | Get buffer contents |
-| `str-char` | ( c -- ) | Append single character |
-| `str2-reset` | ( -- ) | Clear secondary buffer |
-| `str2+` | ( addr u -- ) | Append to secondary |
-| `parse-pipe` | ( addr u n -- addr u field$ ) | Extract nth pipe-delimited field |
-| `parse-comma` | ( addr u n -- addr u field$ ) | Extract nth comma-delimited field |
-| `parse-tab` | ( addr u n -- addr u field$ ) | Extract nth tab-delimited field |
-| `n>str` | ( n -- addr u ) | Number to string |
-| `str=` | ( a1 u1 a2 u2 -- flag ) | String equality |
-
----
 
 ### html.fs - HTML Generation
 
@@ -99,287 +150,68 @@ Full HTML5 tag vocabulary with automatic XSS-safe escaping.
 ```forth
 require ~/fifth/lib/html.fs
 
-\ Set output target
 s" /tmp/page.html" w/o create-file throw html>file
-
-\ Document with styles
-s" My Page" html-head       \ opens <!DOCTYPE>, <html>, <head>, <title>
-  <style> s" body" s" background:#000;color:#fff" css-rule </style>
-html-body                    \ closes </head>, opens <body>
-
-  s" Hello World" h1.
-  s" container" <div.>
-    s" This <script> is escaped & safe" p.    \ auto-escaped!
-    s" Click me" s" https://example.com" a.   \ link helper
-  </div>nl
-
-html-end                     \ closes </body></html>
+s" My Page" html-head
+html-body
+  s" Hello <World>" h1.   \ auto-escaped!
+html-end
 html-fid @ close-file throw
 ```
 
-**Escaping**: `text` automatically converts `< > & ' "` to HTML entities. Use `raw` to output trusted HTML.
-
-**Tag patterns:**
-
-```forth
-\ Simple tags
-<div> ... </div>              \ basic open/close
-s" card" <div.> ... </div>nl  \ with class attribute
-s" my-id" <div#> ... </div>   \ with id attribute
-s" id" s" class" <div#.>      \ with both id and class
-
-\ Convenience words (escaped content, self-closing)
-s" Hello" h1.                 \ <h1>Hello</h1>
-s" Paragraph" p.              \ <p>Paragraph</p>
-s" Cell" td.                  \ <td>Cell</td>
-s" Code" td-code.             \ <td><code>Code</code></td>
-
-\ CSS rules
-s" .card" s" background:#18181b;padding:1rem" css-rule
-\ outputs: .card{background:#18181b;padding:1rem}
-```
-
-**Key words:**
-
-| Word | Stack | Description |
-|------|-------|-------------|
-| `html>file` | ( fid -- ) | Set output file descriptor |
-| `text` | ( addr u -- ) | Output escaped text |
-| `raw` | ( addr u -- ) | Output raw HTML |
-| `nl` | ( -- ) | Newline |
-| `html-head` | ( title$ -- ) | Start document, leave head open |
-| `html-body` | ( -- ) | Close head, open body |
-| `html-begin` | ( title$ -- ) | Start document (head+body) |
-| `html-end` | ( -- ) | Close body and html |
-| `<div.>` | ( class$ -- ) | Open div with class |
-| `<div#.>` | ( id$ class$ -- ) | Open div with id and class |
-| `h1.` `h2.` `h3.` | ( text$ -- ) | Heading with escaped text |
-| `p.` | ( text$ -- ) | Paragraph with escaped text |
-| `th.` `td.` | ( text$ -- ) | Table cell with escaped text |
-| `a.` | ( text$ url$ -- ) | Link element |
-| `css-rule` | ( sel$ props$ -- ) | CSS rule: sel{props} |
-| `html-escape` | ( addr u -- addr' u' ) | Escape HTML entities |
-
-Full HTML5 vocabulary: `<div>`, `<span>`, `<section>`, `<article>`, `<header>`, `<footer>`, `<nav>`, `<main>`, `<aside>`, `<p>`, `<strong>`, `<em>`, `<code>`, `<pre>`, `<ul>`, `<ol>`, `<li>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<form>`, `<input`, `<button>`, `<label>`, `<textarea>`, `<select>`, `<option>`, `<a`, `<img`, `<style>`, `<script>`, `<br/>`.
-
----
-
 ### sql.fs - SQLite Interface
 
-Query SQLite databases via the CLI. No C bindings needed.
+Query SQLite databases via CLI.
 
 ```forth
 require ~/fifth/lib/sql.fs
 
-\ Count rows
 s" mydb.db" s" SELECT COUNT(*) FROM users" sql-count .  \ prints: 42
-
-\ Iterate results (pipe-delimited)
-s" mydb.db" s" SELECT name, email FROM users" sql-exec
-sql-open
-begin sql-row? while
-  dup 0> if
-    2dup 0 sql-field type ." : "    \ first field
-    2dup 1 sql-field type cr        \ second field
-    2drop
-  else 2drop then
-repeat 2drop
-sql-close
-
-\ Execute with callback
-: print-row ( row$ -- ) 2 .sql-fields cr ;
-s" mydb.db" s" SELECT name, email FROM users" ['] print-row sql-each
-
-\ Debug: dump query results to stdout
-s" mydb.db" s" SELECT * FROM users LIMIT 5" sql-dump
 ```
 
-**Key words:**
+### ui.fs - Dashboard Components
 
-| Word | Stack | Description |
-|------|-------|-------------|
-| `sql-exec` | ( db$ sql$ -- ) | Run query, results to temp file |
-| `sql-count` | ( db$ sql$ -- n ) | Run COUNT query, return number |
-| `sql-open` | ( -- ) | Open result file for reading |
-| `sql-row?` | ( -- addr u flag ) | Read next row |
-| `sql-field` | ( addr u n -- addr u field$ ) | Extract nth field (0-based) |
-| `sql-close` | ( -- ) | Close result file |
-| `sql-each` | ( db$ sql$ xt -- ) | Execute xt for each row |
-| `sql-dump` | ( db$ sql$ -- ) | Print results to stdout |
-| `sql-tables` | ( db$ -- ) | List all tables |
-| `sql-table-count` | ( db$ table$ -- n ) | Count rows in table |
-
-**Note**: SQL strings must not contain single quotes (they're used for shell quoting). Use double quotes inside SQL or avoid string literals in WHERE clauses.
-
----
-
-### template.fs - Template System
-
-Deferred slots, conditional rendering, and layout composition.
-
-```forth
-require ~/fifth/lib/template.fs
-
-\ Conditional rendering
-true ['] emit-sidebar ?render   \ only renders if flag is true
-
-\ Deferred slots (template inheritance)
-slot: @header
-slot: @main
-
-: my-header s" Welcome" h1. ;
-' my-header ->slot @header
-
-\ Now @header executes my-header
-@header  \ outputs: <h1>Welcome</h1>
-```
-
----
-
-### ui.fs - UI Components
-
-Pre-built dashboard components with dark theme CSS.
+Pre-built components with dark theme CSS.
 
 ```forth
 require ~/fifth/lib/ui.fs
 
-\ Stat cards
 42 s" Users" stat-card-n
-
-\ Badges
-s" Active" s" bg-success" badge
-s" Critical" badge-danger
-
-\ Cards
-card-begin
-  s" Card Title" card-header
-  card-body-begin
-    s" Card content here" p.
-  card-body-end
-card-end
-
-\ Tabbed interface
-tabs-begin
-  s" Overview" s" overview" true tab     \ active tab
-  s" Settings" s" settings" false tab
-tabs-end
-
-s" overview" true panel-begin
-  s" Overview content" p.
-panel-end
-
-s" settings" false panel-begin
-  s" Settings content" p.
-panel-end
-
-\ Grid layouts
-grid-3                          \ 3-column grid
-  \ ... grid items ...
-grid-end
-
-\ Dashboard layout
-dashboard-begin
-  s" Title" s" subtitle" dashboard-header
-  dashboard-main-begin
-    \ ... dashboard content ...
-  dashboard-main-end
-dashboard-end
-
-\ Include CSS and JS (call once)
-ui-css    \ all component styles
-ui-js     \ tab switching JavaScript
+s" Active" badge-success
+card-begin ... card-end
+tabs-begin ... tabs-end
 ```
 
-**Component words:**
+## Philosophy
 
-| Word | Stack | Description |
-|------|-------|-------------|
-| `stat-card-n` | ( n label$ -- ) | Stat card with number |
-| `badge` | ( text$ class$ -- ) | Colored badge |
-| `badge-danger` | ( text$ -- ) | Red badge |
-| `badge-success` | ( text$ -- ) | Green badge |
-| `card-begin` / `card-end` | ( -- ) | Card container |
-| `tab` | ( text$ id$ active? -- ) | Tab button |
-| `panel-begin` | ( id$ active? -- ) | Tab panel |
-| `panel-end` | ( -- ) | Close panel |
-| `grid-2` `grid-3` `grid-4` | ( -- ) | Grid layouts |
-| `table-begin` / `table-end` | ( -- ) | Styled table |
-| `dashboard-begin` | ( -- ) | Dashboard container |
-| `dashboard-header` | ( title$ sub$ -- ) | Dashboard header |
-| `ui-css` | ( -- ) | Emit all component CSS |
-| `ui-js` | ( -- ) | Emit tab-switching JS |
-
----
-
-### core.fs - Load Everything
-
-```forth
-require ~/fifth/lib/core.fs
-
-\ Loads: str.fs → html.fs → sql.fs → template.fs (not ui.fs)
-\ Also provides:
-.fifth              \ print version
-s" file.html" open-file-cmd  \ open with system default app (macOS)
-42 ??               \ assert (aborts if false)
-```
+- **Write once, run anywhere**: Same Forth source for interpreter and compiler
+- **Minimal dependencies**: Interpreter is 57 KB with zero deps
+- **Proper escaping**: Security by default (HTML entities, SQL quoting)
+- **Stack-based DSLs**: Build vocabularies that make intent clear
+- **Composable**: Small words that combine into larger patterns
+- **AI-native**: Explicit state, verifiable contracts, small vocabulary — ideal for LLM-assisted development (see [docs/agentic-coding.md](docs/agentic-coding.md))
 
 ## Examples
 
-### db-viewer.fs - Dual Database Viewer
-
-Flat HTML viewer for both `agents.db` and `projects.db`:
-
 ```bash
-gforth ~/fifth/examples/db-viewer.fs
+# Run examples with interpreter
+./fifth examples/project-dashboard.fs
+./fifth examples/db-viewer.fs
+
+# Compile for distribution
+./fifth compile examples/project-dashboard.fs -o dashboard
+./dashboard
 ```
 
-Shows: stats row, agent cards, project cards, constraints, navigation, commands, glossary. Uses `core.fs` (str + html + sql).
+## Documentation
 
-### project-dashboard.fs - Tabbed Dashboard
-
-Interactive dashboard for `projects.db` with tab navigation:
-
-```bash
-gforth ~/fifth/examples/project-dashboard.fs
-```
-
-Features:
-- 8 stat cards (projects, constraints, navigation, glossary, commands, conventions, integrations, personas)
-- 6 tabbed panels: Overview, Constraints, Navigation, Commands, Glossary, Personas
-- Dark theme with gradient stat cards and colored badges
-- JavaScript tab switching
-- Proper HTML escaping throughout
-
-Uses `core.fs` + `ui.fs` (all libraries).
-
-## Runtime Comparison
-
-| | Fifth + Gforth | Python 3.14 |
-|--|----------------|-------------|
-| **Runtime size** | **4.6 MB** | 76 MB |
-| **Startup** | ~10ms | ~50ms |
-| **HTML escaping** | `html-escape` | `html.escape()` |
-| **SQLite access** | Shell to CLI | C binding |
-| **Dependencies** | sqlite3 (preinstalled) | stdlib |
-| **Learning curve** | Steep (stack) | Gentle |
-| **Security** | Manual `text` vs `raw` | Manual `escape()` |
-
-## Lessons Learned
-
-Building Fifth required solving real Forth problems:
-
-1. **No `popen`**: Gforth lacks pipe libraries on macOS. Solved by redirecting to temp files.
-2. **No dynamic strings**: `s+` (string concat) causes memory errors. Solved with static buffers (`str-reset` / `str+` / `str$`).
-3. **Stack discipline**: A missing `-rot` vs `swap` caused null pointer dereferences. Stack comments are essential.
-4. **`s"` vs `s\"`**: Standard `s"` has no escapes. Need `s\"` for embedded quotes.
-5. **SQL quoting**: Single quotes in SQL conflict with shell quoting. Avoid `WHERE col='value'`; use ORDER BY, numeric comparisons, or double-quote workarounds.
-6. **Word spacing**: `</div>nl` is one word; `</div> nl` is two. Forth's parser is ruthlessly literal.
-
-## Why "Fifth"?
-
-1. **Forth → Fifth**: Next generation
-2. **The Fifth Age**: Bringing Forth into modern development
-3. **Five principles**: Minimal, secure, composable, fast, fun
+| Document | Description |
+|----------|-------------|
+| [docs/INDEX.md](docs/INDEX.md) | Documentation navigation |
+| [docs/language-spec.md](docs/language-spec.md) | Complete language specification |
+| [docs/forth-reference.md](docs/forth-reference.md) | Forth/Gforth reference |
+| [docs/contributing.md](docs/contributing.md) | Development guide |
+| [docs/roadmap.md](docs/roadmap.md) | Vision and priorities |
+| [CLAUDE.md](CLAUDE.md) | Project constraints |
 
 ## License
 
@@ -387,4 +219,4 @@ MIT
 
 ## Contributing
 
-Build the vocabulary. Submit words that solve real problems.
+Build the vocabulary. Submit words that solve real problems. See [docs/contributing.md](docs/contributing.md).

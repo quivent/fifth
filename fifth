@@ -1,0 +1,79 @@
+#!/bin/bash
+# Fifth - Unified CLI for interpreter and compiler
+#
+# Usage:
+#   ./fifth program.fs           # Interpret (fast startup)
+#   ./fifth -e "2 3 + ."         # One-liner
+#   ./fifth                      # REPL
+#   ./fifth compile program.fs   # Compile to native (via fifthc)
+#   ./fifth run program.fs       # JIT execute (via fifthc)
+#   ./fifth --emit-c program.fs  # Emit C source
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+INTERPRETER="$SCRIPT_DIR/engine/fifth"
+# Check for compiler in shared target dir (global cargo config) or local
+if [[ -x "$HOME/.cargo/shared-target/release/fifthc" ]]; then
+    COMPILER="$HOME/.cargo/shared-target/release/fifthc"
+else
+    COMPILER="$SCRIPT_DIR/compiler/target/release/fifthc"
+fi
+
+# Check if interpreter exists
+if [[ ! -x "$INTERPRETER" ]]; then
+    echo "Error: Interpreter not found at $INTERPRETER"
+    echo "Build it with: cd $SCRIPT_DIR/engine && make"
+    exit 1
+fi
+
+# Dispatch based on first argument
+case "${1:-}" in
+    compile|run|repl|infer|verify-effect|benchmark|spec|generate|diff)
+        # Compiler commands
+        if [[ ! -x "$COMPILER" ]]; then
+            echo "Error: Compiler not found at $COMPILER"
+            echo "Build it with: cd $SCRIPT_DIR/compiler && cargo build --release --features cranelift"
+            exit 1
+        fi
+        exec "$COMPILER" "$@"
+        ;;
+    --emit-c)
+        # C codegen (not yet wired to CLI)
+        echo "Error: C codegen is implemented but not yet exposed via CLI"
+        echo "The backend exists in compiler/optimizer/src/codegen.rs"
+        echo "Use interpreter for now: ./fifth program.fs"
+        exit 1
+        ;;
+    --help|-h)
+        cat <<EOF
+Fifth - A practical Forth ecosystem
+
+INTERPRETER (fast startup, 5-15% of C):
+  fifth program.fs           Execute Forth file
+  fifth -e "code"            Execute one-liner
+  fifth                      Interactive REPL
+
+COMPILER (native code, 70-85% of C):
+  fifth compile program.fs   Compile to native binary
+  fifth run program.fs       JIT execute
+  fifth repl                 Compiled REPL
+  (--emit-c planned but not yet wired to CLI)
+
+OPTIONS:
+  --help, -h                 Show this help
+
+EXAMPLES:
+  fifth examples/project-dashboard.fs
+  fifth compile examples/project-dashboard.fs -o dashboard
+  fifth --emit-c examples/project-dashboard.fs > dashboard.c
+
+For compiler options: fifth compile --help
+EOF
+        exit 0
+        ;;
+    *)
+        # Default: use interpreter
+        exec "$INTERPRETER" "$@"
+        ;;
+esac
