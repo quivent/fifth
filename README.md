@@ -69,13 +69,13 @@ fifth -e "2 3 + . cr"   # Should print: 5
 ### Hello, World
 
 ```bash
-./fifth -e ': hello ." Hello, World!" cr ; hello'
+fifth -e ': hello ." Hello, World!" cr ; hello'
 ```
 
 ### Interactive REPL
 
 ```bash
-./fifth
+fifth
 \ Welcome to Fifth
 2 3 + .          \ 5
 : square dup * ;
@@ -86,7 +86,7 @@ bye
 ### Run a File
 
 ```bash
-./fifth examples/project-dashboard.fs
+fifth examples/project-dashboard.fs
 ```
 
 ### Your First Program
@@ -116,7 +116,7 @@ bye
 Run it:
 
 ```bash
-./fifth hello.fs
+fifth hello.fs
 ```
 
 ---
@@ -243,9 +243,8 @@ sqlite3 data/agents.db "SELECT avatar, name, role FROM agents ORDER BY priority 
 | 🚚 | Migrator | Upgrade Specialist |
 | 📝 | Documenter | Technical Writer |
 
-```forth
-\ Generate agent dashboard
-./fifth examples/agent-dashboard.fs
+```bash
+fifth examples/agent-dashboard.fs
 ```
 
 ---
@@ -563,10 +562,10 @@ Same source files work on all backends.
 
 ```bash
 # Interpreted (default)
-./fifth program.fs
+fifth program.fs
 
 # Compiled to native
-./fifth compile program.fs -o program
+fifth compile program.fs -o program
 ./program
 ```
 
@@ -624,8 +623,8 @@ cd engine && make && cd ..
 cd compiler && cargo build --release --features cranelift && cd ..
 
 # Use unified CLI
-./fifth examples/hello.fs           # interpret
-./fifth compile examples/hello.fs   # compile
+fifth examples/hello.fs           # interpret
+fifth compile examples/hello.fs   # compile
 ```
 
 ---
