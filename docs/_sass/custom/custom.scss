@@ -1,0 +1,457 @@
+// Fifth Design System — Showcase-inspired
+// Minimalist. Purposeful. Precise.
+
+// Import fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+// ========================================
+// Color Palette (Override Just the Docs)
+// ========================================
+
+$black: #0a0a0a;
+$gray-950: #0f0f0f;
+$gray-900: #171717;
+$gray-800: #262626;
+$gray-700: #404040;
+$gray-600: #525252;
+$gray-500: #737373;
+$gray-400: #a3a3a3;
+$gray-300: #d4d4d4;
+$gray-200: #e5e5e5;
+$gray-100: #f5f5f5;
+$white: #fafafa;
+
+// The accent — a refined indigo
+$accent: #6366f1;
+$accent-dim: rgba(99, 102, 241, 0.15);
+
+// ========================================
+// Override Just the Docs Variables
+// ========================================
+
+$body-background-color: $black !default;
+$sidebar-color: $gray-950 !default;
+$body-text-color: $gray-100 !default;
+$body-heading-color: $white !default;
+$nav-child-link-color: $gray-400 !default;
+$link-color: $accent !default;
+$btn-primary-color: $accent !default;
+$code-background-color: $gray-900 !default;
+$border-color: $gray-800 !default;
+
+// ========================================
+// Typography
+// ========================================
+
+$font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-mono: 'JetBrains Mono', monospace;
+
+body {
+  font-family: $font-sans !important;
+  background: $black !important;
+  color: $gray-100 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, pre, .highlight {
+  font-family: $font-mono !important;
+}
+
+// ========================================
+// Main Content Area
+// ========================================
+
+.main {
+  background: $black !important;
+}
+
+.main-content-wrap {
+  background: $black !important;
+}
+
+.main-content {
+  background: $black !important;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: $white;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: $white;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid $gray-800;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: $gray-200;
+    margin-top: 1.5rem;
+  }
+
+  p {
+    color: $gray-300;
+    line-height: 1.7;
+  }
+
+  a {
+    color: $accent;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  // Code blocks
+  pre {
+    background: $gray-900 !important;
+    border: 1px solid $gray-800;
+    border-radius: 8px;
+    padding: 1rem;
+
+    code {
+      background: transparent !important;
+      color: $gray-200;
+    }
+  }
+
+  code {
+    background: $gray-900;
+    color: $accent;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    font-size: 0.875em;
+  }
+
+  // Tables
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5rem 0;
+
+    th {
+      background: $gray-900;
+      color: $gray-300;
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid $gray-800;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid $gray-900;
+      color: $gray-300;
+    }
+
+    tr:hover {
+      background: $gray-950;
+    }
+  }
+
+  // Blockquotes
+  blockquote {
+    border-left: 3px solid $accent;
+    background: $gray-950;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+
+    p {
+      color: $gray-400;
+      font-style: italic;
+      margin: 0;
+    }
+  }
+
+  // Horizontal rule
+  hr {
+    border: none;
+    border-top: 1px solid $gray-800;
+    margin: 2rem 0;
+  }
+
+  // Lists
+  ul, ol {
+    color: $gray-300;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+// ========================================
+// Sidebar Navigation
+// ========================================
+
+.side-bar {
+  background: $gray-950 !important;
+  border-right: 1px solid $gray-900;
+}
+
+.site-title {
+  font-weight: 600 !important;
+  letter-spacing: -0.02em;
+  color: $white !important;
+}
+
+.site-nav {
+  padding-top: 1rem;
+}
+
+.nav-list {
+  .nav-list-item {
+    .nav-list-link {
+      color: $gray-400 !important;
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      margin: 0.125rem 0.5rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: $white !important;
+        background: $gray-900;
+      }
+
+      &.active {
+        color: $white !important;
+        background: $accent-dim;
+        font-weight: 500;
+      }
+    }
+
+    // Child nav items
+    .nav-list {
+      .nav-list-link {
+        padding-left: 2rem;
+        font-size: 0.8125rem;
+        color: $gray-500 !important;
+      }
+    }
+  }
+}
+
+// ========================================
+// Header / Top Navigation
+// ========================================
+
+.main-header {
+  background: rgba(10, 10, 10, 0.8) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid $gray-900;
+}
+
+.search-input {
+  background: $gray-900 !important;
+  border: 1px solid $gray-800 !important;
+  color: $gray-200 !important;
+  border-radius: 8px;
+
+  &:focus {
+    border-color: $accent !important;
+    box-shadow: 0 0 0 2px $accent-dim;
+  }
+
+  &::placeholder {
+    color: $gray-500;
+  }
+}
+
+.search-results {
+  background: $gray-900 !important;
+  border: 1px solid $gray-800;
+  border-radius: 8px;
+
+  .search-result {
+    &:hover {
+      background: $gray-800;
+    }
+  }
+}
+
+// Aux links (GitHub, etc.)
+.aux-nav {
+  .aux-nav-list-item {
+    a {
+      color: $gray-400 !important;
+      font-size: 0.875rem;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: $white !important;
+      }
+    }
+  }
+}
+
+// ========================================
+// Breadcrumbs
+// ========================================
+
+.breadcrumb-nav {
+  .breadcrumb-nav-list-item {
+    color: $gray-500;
+    font-size: 0.8125rem;
+
+    a {
+      color: $gray-400 !important;
+
+      &:hover {
+        color: $accent !important;
+      }
+    }
+
+    &::before {
+      color: $gray-600;
+    }
+  }
+}
+
+// ========================================
+// Footer
+// ========================================
+
+.site-footer {
+  background: $black !important;
+  border-top: 1px solid $gray-800;
+  color: $gray-500;
+
+  a {
+    color: $gray-400 !important;
+
+    &:hover {
+      color: $white !important;
+    }
+  }
+}
+
+// ========================================
+// Cards (for custom card elements)
+// ========================================
+
+.card {
+  display: block;
+  padding: 1.5rem;
+  background: $gray-950;
+  border: 1px solid $gray-800;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  position: relative;
+
+  &:hover {
+    border-color: $gray-700;
+    transform: translateY(-2px);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 1.5rem;
+    right: 1.5rem;
+    height: 1px;
+    background: $accent;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+}
+
+// ========================================
+// Buttons
+// ========================================
+
+.btn {
+  font-family: $font-sans;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.btn-primary {
+  background: $accent !important;
+  border-color: $accent !important;
+}
+
+// ========================================
+// Selection
+// ========================================
+
+::selection {
+  background: $accent-dim;
+  color: $white;
+}
+
+// ========================================
+// Scrollbar (Webkit)
+// ========================================
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $gray-950;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $gray-700;
+  border-radius: 4px;
+
+  &:hover {
+    background: $gray-600;
+  }
+}
+
+// ========================================
+// Focus States
+// ========================================
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid $accent;
+  outline-offset: 2px;
+}
+
+// ========================================
+// Responsive
+// ========================================
+
+@media (max-width: 800px) {
+  .side-bar {
+    background: $black !important;
+  }
+
+  .main-header {
+    background: $black !important;
+  }
+}
