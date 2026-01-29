@@ -62,17 +62,18 @@ The difference is bloat:
 
 ### Performance in Practice
 
-For typical Fifth workflows — scripting, data processing, code generation — interpretation overhead is negligible compared to I/O:
+Real measurements (M-series Mac):
 
 ```
-Shell command:       5-50ms
-File read/write:     1-10ms
-Database query:      5-100ms
-Forth interpretation: 0.1ms   ← This
-Browser launch:      200ms
+Fifth startup:        5ms
+Forth 10K iterations: 2ms    ← Interpretation
+sqlite3 subprocess:   4ms
+File write:          <1ms
+open (launch app):   56ms
+curl (network):     130ms
 ```
 
-The bottleneck is always I/O. Fifth shells out for heavy lifting (`sqlite3`, `curl`, `jq`) and handles orchestration in Forth. Same pattern as shell scripts, but with stack discipline.
+Forth interpretation is <2% of any real workflow. The bottleneck is always I/O and subprocess spawning. Fifth shells out for heavy lifting (`sqlite3`, `curl`, `jq`, `open`) and handles orchestration in Forth — same pattern as shell scripts, but with stack discipline and verifiable contracts.
 
 ---
 
