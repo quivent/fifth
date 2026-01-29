@@ -1,57 +1,43 @@
-# Fifth Documentation
+---
+layout: default
+title: Fifth Wiki
+---
 
-## Quick Navigation
+# Fifth Wiki
 
-| Document | Purpose |
-|----------|---------|
-| [../README.md](../README.md) | Quick start, architecture overview |
-| [../CLAUDE.md](../CLAUDE.md) | Project constraints, critical gotchas |
+A Forth for the Agentic Era.
 
-## Core Documentation
+## Getting Started
 
-| Document | Description |
-|----------|-------------|
-| [language-spec.md](language-spec.md) | Complete Fifth language specification |
-| [forth-reference.md](forth-reference.md) | Forth language reference |
-| [library-reference.md](library-reference.md) | Proposed new libraries |
-| [contributing.md](contributing.md) | Development guide, debugging, testing |
-| [roadmap.md](roadmap.md) | Vision, priorities, planned improvements |
-| [agentic-coding.md](agentic-coding.md) | Why Forth is ideal for AI-assisted development |
+- [Installation](wiki/installation)
+- [Quick Start](wiki/quickstart)
+- [Your First Program](wiki/first-program)
 
-## Subsystem Documentation
+## Language
 
-| Location | Description |
-|----------|-------------|
-| [../engine/ENGINE.md](../engine/ENGINE.md) | C interpreter architecture |
-| [../compiler/docs/](../compiler/docs/) | Rust compiler documentation |
+- [Stack Operations](wiki/stack)
+- [Words and Definitions](wiki/words)
+- [Control Flow](wiki/control-flow)
+- [Memory](wiki/memory)
 
-## Library Files
+## Libraries
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `lib/str.fs` | 147 | String buffers, parsing |
-| `lib/html.fs` | 336 | HTML5 generation, escaping |
-| `lib/sql.fs` | 152 | SQLite CLI interface |
-| `lib/template.fs` | 123 | Slots, deferred rendering |
-| `lib/ui.fs` | 261 | Dashboard components |
-| `lib/core.fs` | 67 | Loader and utilities |
+- [String Buffers (str.fs)](wiki/lib-str)
+- [HTML Generation (html.fs)](wiki/lib-html)
+- [SQLite (sql.fs)](wiki/lib-sql)
+- [UI Components (ui.fs)](wiki/lib-ui)
 
-## Dependency Graph
+## Package System
 
-```
-str.fs  <--  html.fs  <--  template.fs  <--  ui.fs
-  ^             ^
-  |             |
-sql.fs      core.fs (loads str + html + sql)
-```
+- [Using Packages](wiki/packages)
+- [Creating Packages](wiki/creating-packages)
 
-## Examples
+## Architecture
 
-| File | Description |
-|------|-------------|
-| `examples/db-viewer.fs` | Dual-database HTML viewer |
-| `examples/project-dashboard.fs` | Tabbed dashboard with stat cards |
+- [Interpreter](wiki/interpreter)
+- [Compiler](wiki/compiler)
+- [Metacompilation](wiki/metacompilation)
 
 ---
 
-*Index generated from repository structure*
+[GitHub](https://github.com/quivent/fifth) · [Homebrew](https://github.com/quivent/homebrew-fifth)

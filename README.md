@@ -1,14 +1,6 @@
 # Fifth
 
-```
-    ███████╗██╗███████╗████████╗██╗  ██╗
-    ██╔════╝██║██╔════╝╚══██╔══╝██║  ██║
-    █████╗  ██║█████╗     ██║   ███████║
-    ██╔══╝  ██║██╔══╝     ██║   ██╔══██║
-    ██║     ██║██║        ██║   ██║  ██║
-    ╚═╝     ╚═╝╚═╝        ╚═╝   ╚═╝  ╚═╝
-         A Forth for the Agentic Era
-```
+![Fifth](brand/logo.svg)
 
 > *"I think the industry is fundamentally unable to appreciate simplicity."*
 > — Chuck Moore, creator of Forth
