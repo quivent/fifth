@@ -60,19 +60,19 @@ The difference is bloat:
 
 **The C codegen path achieves PyPy-level performance with near-zero bloat** — just emit C and use the system compiler. The heavy Rust toolchain is optional, for when maximum optimization matters.
 
-### Why Performance Doesn't Matter Here
+### Performance in Practice
 
-For Fifth's use case (HTML generation from SQLite):
+For typical Fifth workflows — scripting, data processing, code generation — interpretation overhead is negligible compared to I/O:
 
 ```
-sqlite3 subprocess:  20ms
-Query execution:     5-50ms
-HTML building:       0.1ms   ← Forth interpretation
-File write:          1ms
+Shell command:       5-50ms
+File read/write:     1-10ms
+Database query:      5-100ms
+Forth interpretation: 0.1ms   ← This
 Browser launch:      200ms
 ```
 
-Interpretation time is 0.04% of total. Compiled vs interpreted is irrelevant. The bottleneck is I/O.
+The bottleneck is always I/O. Fifth shells out for heavy lifting (`sqlite3`, `curl`, `jq`) and handles orchestration in Forth. Same pattern as shell scripts, but with stack discipline.
 
 ---
 
@@ -224,29 +224,34 @@ Each is a source of error.
 ### Fifth: Same Result
 
 ```forth
-require ~/fifth/lib/core.fs
-require ~/fifth/lib/ui.fs
+require ~/.fifth/lib/core.fs
 
 : render-user ( row$ -- )
   <tr> 2dup 0 sql-field td. 1 sql-field td. 2drop </tr> ;
 
 s" /tmp/users.html" w/o create-file throw html>file
-s" Users" html-begin
-  table-begin
+s" Users" html-head html-body
+  <table>
     <thead> <tr> s" ID" th. s" Name" th. </tr> </thead>
-    table-body-begin
-      s" db.sqlite" s" SELECT id, name FROM user"
-      ['] render-user sql-each
-    table-body-end
-  table-end
+    <tbody>
+      s" db.sqlite" s" SELECT id, name FROM user" sql-exec
+      sql-open
+      begin sql-row? while
+        dup 0> if render-user else 2drop then
+      repeat 2drop
+      sql-close
+    </tbody>
+  </table>
 html-end
 html-fid @ close-file throw
+
+\ Open in browser - Fifth handles I/O
 s" /tmp/users.html" open-file-cmd
 ```
 
 The LLM must correctly use: stack operations.
 
-That's it. No framework. No interactions. Each word does one thing.
+That's it. No framework. No interactions. Each word does one thing. Fifth shells out to `sqlite3` for queries and `open` for the browser — same tools you'd use from bash, but with stack discipline.
 
 ---
 
