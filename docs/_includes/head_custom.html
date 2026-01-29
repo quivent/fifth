@@ -1,0 +1,231 @@
+<!-- Fifth Custom Styles -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* Fifth Design System */
+:root {
+  --fifth-black: #0a0a0a;
+  --fifth-gray-950: #0f0f0f;
+  --fifth-gray-900: #171717;
+  --fifth-gray-800: #262626;
+  --fifth-gray-700: #404040;
+  --fifth-gray-600: #525252;
+  --fifth-gray-500: #737373;
+  --fifth-gray-400: #a3a3a3;
+  --fifth-gray-300: #d4d4d4;
+  --fifth-gray-200: #e5e5e5;
+  --fifth-gray-100: #f5f5f5;
+  --fifth-white: #fafafa;
+  --fifth-accent: #6366f1;
+  --fifth-accent-dim: rgba(99, 102, 241, 0.15);
+}
+
+/* Base overrides */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  background: var(--fifth-black) !important;
+  color: var(--fifth-gray-100) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, pre, .highlight, .highlighter-rouge {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Sidebar */
+.side-bar {
+  background: var(--fifth-gray-950) !important;
+  border-right: 1px solid var(--fifth-gray-800) !important;
+}
+
+.site-title {
+  color: var(--fifth-white) !important;
+  font-weight: 600 !important;
+}
+
+.site-footer {
+  background: var(--fifth-gray-950) !important;
+  border-top: 1px solid var(--fifth-gray-800) !important;
+  color: var(--fifth-gray-500) !important;
+}
+
+/* Navigation */
+.nav-list-link {
+  color: var(--fifth-gray-400) !important;
+}
+
+.nav-list-link:hover {
+  color: var(--fifth-white) !important;
+  background: var(--fifth-gray-900) !important;
+}
+
+.nav-list-link.active {
+  color: var(--fifth-white) !important;
+  background: var(--fifth-accent-dim) !important;
+  font-weight: 500 !important;
+}
+
+/* Main content */
+.main, .main-content-wrap, .main-content {
+  background: var(--fifth-black) !important;
+}
+
+.main-header {
+  background: rgba(10, 10, 10, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid var(--fifth-gray-800) !important;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--fifth-white) !important;
+}
+
+h1 { font-weight: 600 !important; letter-spacing: -0.03em !important; }
+h2 {
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  padding-bottom: 0.5rem !important;
+  border-bottom: 1px solid var(--fifth-gray-800) !important;
+}
+
+p, li {
+  color: var(--fifth-gray-300) !important;
+}
+
+a {
+  color: var(--fifth-accent) !important;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+/* Code blocks */
+pre, .highlight {
+  background: var(--fifth-gray-900) !important;
+  border: 1px solid var(--fifth-gray-800) !important;
+  border-radius: 8px !important;
+}
+
+code {
+  background: var(--fifth-gray-900) !important;
+  color: var(--fifth-accent) !important;
+  border-radius: 4px !important;
+}
+
+pre code {
+  color: var(--fifth-gray-200) !important;
+}
+
+/* Tables */
+table {
+  background: var(--fifth-gray-950) !important;
+}
+
+th {
+  background: var(--fifth-gray-900) !important;
+  color: var(--fifth-gray-300) !important;
+  border-bottom: 1px solid var(--fifth-gray-800) !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+td {
+  border-bottom: 1px solid var(--fifth-gray-900) !important;
+  color: var(--fifth-gray-300) !important;
+}
+
+tr:hover {
+  background: var(--fifth-gray-950) !important;
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 3px solid var(--fifth-accent) !important;
+  background: var(--fifth-gray-950) !important;
+  padding: 1rem 1.5rem !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+blockquote p {
+  color: var(--fifth-gray-400) !important;
+}
+
+/* Search */
+.search-input {
+  background: var(--fifth-gray-900) !important;
+  border: 1px solid var(--fifth-gray-800) !important;
+  color: var(--fifth-gray-200) !important;
+  border-radius: 8px !important;
+}
+
+.search-input:focus {
+  border-color: var(--fifth-accent) !important;
+  box-shadow: 0 0 0 2px var(--fifth-accent-dim) !important;
+}
+
+.search-results {
+  background: var(--fifth-gray-900) !important;
+  border: 1px solid var(--fifth-gray-800) !important;
+}
+
+/* Aux nav */
+.aux-nav a {
+  color: var(--fifth-gray-400) !important;
+}
+
+.aux-nav a:hover {
+  color: var(--fifth-white) !important;
+}
+
+/* Horizontal rules */
+hr {
+  border-color: var(--fifth-gray-800) !important;
+}
+
+/* Selection */
+::selection {
+  background: var(--fifth-accent-dim) !important;
+  color: var(--fifth-white) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--fifth-gray-950);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--fifth-gray-700);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fifth-gray-600);
+}
+
+/* Footer */
+.site-footer a {
+  color: var(--fifth-gray-400) !important;
+}
+
+#back-to-top {
+  color: var(--fifth-accent) !important;
+}
+
+/* Mobile sidebar */
+@media (max-width: 800px) {
+  .side-bar {
+    background: var(--fifth-black) !important;
+  }
+}
+</style>
