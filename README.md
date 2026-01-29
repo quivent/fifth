@@ -175,6 +175,71 @@ html-fid @ close-file throw
 
 ---
 
+## Demo Databases
+
+Fifth includes ready-to-use SQLite databases in `data/` for immediate experimentation:
+
+### projects.db — Project Topology
+
+Demonstrates how to encode project knowledge for AI-assisted development:
+
+```bash
+sqlite3 data/projects.db "SELECT name, domain FROM projects"
+# fifth|language-runtime
+# todo-app|web-application
+```
+
+**Tables:**
+- `projects` — Core identity (name, domain, purpose, stack)
+- `constraints` — Things to never do (prohibitions) and requirements
+- `navigation` — Key files and their purposes
+- `verification` — Self-test questions to verify understanding
+- `commands` — Build, run, test commands
+- `conventions` — Coding patterns and naming rules
+- `glossary` — Domain terminology
+- `personas` — Who uses this project
+
+```forth
+\ Query project constraints
+use lib:core.fs
+s" data/projects.db" s" SELECT type, content FROM constraints WHERE severity='absolute'" sql-exec
+sql-open
+begin sql-row? while
+  dup 0> if 2dup 0 sql-field type ." : " 1 sql-field type cr 2drop else 2drop then
+repeat 2drop
+sql-close
+```
+
+### agents.db — Functional Agents
+
+12 generic software development agents:
+
+```bash
+sqlite3 data/agents.db "SELECT avatar, name, role FROM agents ORDER BY priority DESC"
+```
+
+| Avatar | Name | Role |
+|--------|------|------|
+| 🐛 | Debugger | Issue Investigator |
+| 🛡️ | Security Analyst | Vulnerability Hunter |
+| 🏗️ | Architect | System Designer |
+| 🧭 | Explorer | Codebase Navigator |
+| 🔍 | Reviewer | Code Quality Analyst |
+| 📋 | Planner | Task Decomposer |
+| ✅ | Tester | Quality Assurance |
+| ⚡ | Optimizer | Performance Engineer |
+| 🔗 | Integrator | System Connector |
+| 🔧 | Refactorer | Code Improver |
+| 🚚 | Migrator | Upgrade Specialist |
+| 📝 | Documenter | Technical Writer |
+
+```forth
+\ Generate agent dashboard
+./fifth examples/agent-dashboard.fs
+```
+
+---
+
 ## Package System
 
 Fifth uses `~/.fifth/` as its package home (configurable via `FIFTH_HOME`).
@@ -508,6 +573,9 @@ Same source files work on all backends.
 │   └── io.c                 # File I/O, system calls
 ├── compiler/                # Rust compiler (Cranelift backend)
 ├── lib/                     # Source libraries (copied to ~/.fifth/lib/)
+├── data/                    # Demo databases (ready to use!)
+│   ├── projects.db          # Project topology examples
+│   └── agents.db            # Functional agent examples
 ├── examples/                # Example applications
 └── docs/                    # Documentation
 
