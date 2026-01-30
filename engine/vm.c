@@ -324,7 +324,6 @@ vm_t *vm_create(void) {
     prims_init(vm);
     io_init(vm);
     spawn_init(vm);
-    tcc_init(vm);
 
     /* Align HERE after primitive registration */
     vm->here = vm_align(vm->here);
