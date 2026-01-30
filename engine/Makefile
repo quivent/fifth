@@ -14,8 +14,9 @@ else
 LDFLAGS =
 endif
 TARGET  = fifth
-SRCS    = main.c vm.c prims.c io.c
+SRCS    = main.c vm.c prims.c io.c spawn.c
 OBJS    = $(SRCS:.c=.o)
+LDFLAGS += -lpthread
 
 .PHONY: all clean install test debug
 

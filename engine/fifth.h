@@ -205,5 +205,11 @@ void  vm_abort(vm_t *vm, const char *msg);   /* Abort with message */
 /* Registration */
 void  prims_init(vm_t *vm);
 void  io_init(vm_t *vm);
+void  spawn_init(vm_t *vm);
+void  tcc_init(vm_t *vm);
+void  tcc_cleanup(void);
+
+/* Codegen (for tf tool) */
+const char *codegen_to_c(vm_t *vm, bool standalone);
 
 #endif /* FIFTH_H */
