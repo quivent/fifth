@@ -28,22 +28,31 @@ variable path-len
   else drop then ;
 
 \ ============================================================
-\ FIFTH_HOME Resolution
+\ FIFTH_HOME Resolution (cached in dedicated buffer)
 \ ============================================================
 
-: default-fifth-home ( -- addr u )
-  \ Default: ~/.fifth
+256 constant home-max
+create home-buf home-max allot
+variable home-len
+
+: fifth-home-init ( -- )
+  s" FIFTH_HOME" getenv dup 0> if
+    dup home-len ! home-buf swap move exit
+  then
+  2drop
   s" HOME" getenv dup 0= if
-    2drop s" /tmp/.fifth"  \ Fallback if no HOME
-  else
-    path-reset path+ s" /.fifth" path+ path$
-  then ;
+    2drop s" /tmp"
+  then
+  dup home-len ! home-buf swap move
+  s" /.fifth"
+  dup home-len @ + home-max < if
+    home-buf home-len @ + swap dup home-len +! move
+  else 2drop then ;
+
+fifth-home-init
 
 : fifth-home$ ( -- addr u )
-  \ Get FIFTH_HOME from environment or use default
-  s" FIFTH_HOME" getenv dup 0= if
-    2drop default-fifth-home
-  then ;
+  home-buf home-len @ ;
 
 \ ============================================================
 \ Prefix Detection

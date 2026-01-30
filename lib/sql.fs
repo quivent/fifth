@@ -150,3 +150,25 @@ variable sql-count-fid
     i 0> if 9 emit then
     2dup i sql-field type
   loop 2drop ;
+
+\ ============================================================
+\ Dynamic SQL (str2-buf safe)
+\ ============================================================
+
+\ Build queries in str2-buf to avoid collision with sql-cmd-query's str-buf.
+\ Use str2-reset / str2+ / str2-char to compose SQL, then:
+\   db$ sql-exec2     ( execute, results in sql-output )
+\   db$ sql-dump2     ( execute and print to stdout )
+\   db$ sql-count2    ( execute COUNT, return n )
+
+: sql-exec2 ( db$ -- )
+  \ Execute SQL from str2$
+  str2$ sql-exec ;
+
+: sql-dump2 ( db$ -- )
+  \ Execute SQL from str2$ and print results
+  str2$ sql-dump ;
+
+: sql-count2 ( db$ -- n )
+  \ Execute COUNT SQL from str2$, return number
+  str2$ sql-count ;
